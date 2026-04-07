@@ -214,7 +214,7 @@ function findARV(){
   if(!addr){alert('Please enter an address first!');return}
   document.getElementById('arv-load').style.display='block';
   document.getElementById('arv-err').style.display='none';
-  fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://api.rentcast.io/v1/avm/value?address='+encodeURIComponent(addr)),{headers:{'X-Api-Key':'431cd4db8c294b0eb1180050901e6e39','Accept':'application/json'}})
+  fetch('https://api.fetch('/api/arv?address='+encodeURIComponent(addr)).win/raw?url='+encodeURIComponent('https://api.rentcast.io/v1/avm/value?address='+encodeURIComponent(addr)),{headers:{'X-Api-Key':'431cd4db8c294b0eb1180050901e6e39','Accept':'application/json'}})
   .then(function(r){return r.json()})
   .then(function(d){
     arv=d.price||d.priceRangeLow||0;
@@ -290,7 +290,7 @@ function findTeam(){
   var types=Object.keys(vtypes);
   var done=0;
   types.forEach(function(type){
-    fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://maps.googleapis.com/maps/api/place/textsearch/json?query='+encodeURIComponent(vtypes[type]+' '+zip)+'&key=AIzaSyAQYfLlnpDIx11ZeWK-yl9_Jl9jSEXj3Og'))
+    fetch('https://api.fetch('/api/team?zip='+zip+'&type='+encodeURIComponent(vtypes[type])).win/raw?url='+encodeURIComponent('https://maps.googleapis.com/maps/api/place/textsearch/json?query='+encodeURIComponent(vtypes[type]+' '+zip)+'&key=AIzaSyAQYfLlnpDIx11ZeWK-yl9_Jl9jSEXj3Og'))
     .then(function(r){return r.json()})
     .then(function(d){
       (d.results||[]).slice(0,3).forEach(function(p){

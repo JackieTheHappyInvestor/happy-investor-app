@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   try {
     const response = await fetch(
       `https://api.rentcast.io/v1/avm/value?address=${encodeURIComponent(address)}`,
-      { headers: { 'X-Api-Key': '431cd4db8c294b0eb1180050901e6e39', 'Accept': 'application/json' } }
+      { headers: { 'X-Api-Key': process.env.RENTCAST_API_KEY, 'Accept': 'application/json' } }
     );
     const data = await response.json();
     res.status(200).json(data);

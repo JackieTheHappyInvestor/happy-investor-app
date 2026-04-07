@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   if (!zip) return res.status(400).json({ error: 'Zip required' });
   try {
     const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(type+' '+zip)}&key=AIzaSyAQYfLlnpDIx11ZeWK-yl9_Jl9jSEXj3Og`
+      `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(type+' '+zip)}&key=${process.env.GOOGLE_PLACES_API_KEY}`
     );
     const data = await response.json();
     res.status(200).json(data);

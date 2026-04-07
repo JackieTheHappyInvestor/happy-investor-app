@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
-<!-- saved from url=(0045)file:///C:/Users/Jacki/Downloads/index_6.html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>The Happy Investor</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -463,16 +464,16 @@
 
   <!-- HEADER -->
   <div class="app-header">
-    <img src="file:///C:/Users/Jacki/Downloads/logo.png" alt="The Happy Investor" onerror="this.style.display=&#39;none&#39;; document.getElementById(&#39;text-logo&#39;).style.display=&#39;block&#39;;" style="display: none;">
-    <div id="text-logo" style="display: block; font-size: 28px; font-weight: 900; color: rgb(255, 210, 63); padding: 10px 0px;">The Happy Investor™</div>
+    <img src="logo.png" alt="The Happy Investor" onerror="this.style.display='none'; document.getElementById('text-logo').style.display='block';" />
+    <div id="text-logo" style="display:none; font-size:28px; font-weight:900; color:#FFD23F; padding:10px 0;">The Happy Investor™</div>
   </div>
   <div class="app-tagline">Real Estate Investing Simplified — The Happy Investor Method™</div>
 
   <!-- NAV -->
   <div class="nav-tabs">
-    <button class="nav-tab active" onclick="showScreen(&#39;home&#39;)">Home</button>
-    <button class="nav-tab" onclick="showScreen(&#39;deal&#39;)">Analyze<br>a Deal</button>
-    <button class="nav-tab" onclick="showScreen(&#39;team&#39;)">Find<br>My Team</button>
+    <button class="nav-tab active" onclick="showScreen('home')">Home</button>
+    <button class="nav-tab" onclick="showScreen('deal')">Analyze<br>a Deal</button>
+    <button class="nav-tab" onclick="showScreen('team')">Find<br>My Team</button>
   </div>
 
   <!-- HOME SCREEN -->
@@ -482,14 +483,14 @@
       <p>This app is simple — you can get the ARV here and find a team near you so you can start flipping.</p>
     </div>
 
-    <button class="big-btn big-btn-teal" onclick="showScreen(&#39;deal&#39;)">
+    <button class="big-btn big-btn-teal" onclick="showScreen('deal')">
       Should I buy this house? (Get the ARV here)
       <sub>Type in any address — we do the math</sub>
     </button>
 
-    <button class="big-btn big-btn-teal" onclick="showScreen(&#39;team&#39;)">
+    <button class="big-btn big-btn-teal" onclick="showScreen('team')">
       Build my team
-      <sub>Find realtors, lenders &amp; title near you</sub>
+      <sub>Find realtors, lenders & title near you</sub>
     </button>
   </div>
 
@@ -502,8 +503,8 @@
     </div>
 
     <div class="deal-tabs">
-      <button class="deal-tab active" id="tab-comps" onclick="switchDealTab(&#39;comps&#39;)">I need to find<br>the ARV</button>
-      <button class="deal-tab" id="tab-know" onclick="switchDealTab(&#39;know&#39;)">I already know<br>the ARV</button>
+      <button class="deal-tab active" id="tab-comps" onclick="switchDealTab('comps')">I need to find<br>the ARV</button>
+      <button class="deal-tab" id="tab-know" onclick="switchDealTab('know')">I already know<br>the ARV</button>
     </div>
 
     <!-- TAB 1: FIND VALUE -->
@@ -521,7 +522,7 @@
           <div class="jackie-text">Hey! Type in the address of the house you're looking at. I'll check what similar houses sold for nearby to find the ARV (after repair value)!</div>
         </div>
         <div class="field-label">Type the address here</div>
-        <input class="field-input" type="text" id="address-input" placeholder="123 Main St, Dallas TX 75201">
+        <input class="field-input" type="text" id="address-input" placeholder="123 Main St, Dallas TX 75201" />
         <br><br>
         <button class="big-btn big-btn-pink" onclick="lookupARV()">Find the value of this house</button>
         <div id="arv-loading" class="loading hidden">
@@ -539,9 +540,9 @@
           <div class="jackie-text">Great start! Now tell me what you're spending. Remember — add the purchase price AND the repair cost together. That's your all-in number!</div>
         </div>
         <div class="field-label">What are you paying for the house?</div>
-        <input class="field-input" type="number" id="purchase-price" placeholder="150000">
+        <input class="field-input" type="number" id="purchase-price" placeholder="150000" />
         <div class="field-label">How much will fixing it up cost?</div>
-        <input class="field-input" type="number" id="rehab-cost" placeholder="40000">
+        <input class="field-input" type="number" id="rehab-cost" placeholder="40000" />
         <br><br>
         <button class="big-btn big-btn-pink" onclick="calculateDeal()">Show me the verdict!</button>
       </div>
@@ -550,7 +551,7 @@
       <div id="step3" class="hidden">
         <div id="verdict-display"></div>
         <button class="big-btn big-btn-black" style="margin-top:12px;" onclick="resetDeal()">Analyze another house</button>
-        <button class="big-btn big-btn-teal" onclick="showScreen(&#39;team&#39;)">Now find my team nearby</button>
+        <button class="big-btn big-btn-teal" onclick="showScreen('team')">Now find my team nearby</button>
       </div>
     </div>
 
@@ -561,15 +562,15 @@
         <div class="jackie-text">Already know the value? Perfect — just plug in your numbers and I'll tell you if it's a deal using my 70% rule!</div>
       </div>
       <div class="field-label">What will this house be worth after repairs?</div>
-      <input class="field-input" type="number" id="known-arv" placeholder="290000" oninput="updateKnownAllin()">
+      <input class="field-input" type="number" id="known-arv" placeholder="290000" oninput="updateKnownAllin()" />
       <div class="allin-box" style="margin-top:10px;">
         <div class="allin-label">Your all-in number (ARV x 70%)</div>
         <div class="allin-value" id="known-allin">$0</div>
       </div>
       <div class="field-label">What are you paying for the house?</div>
-      <input class="field-input" type="number" id="known-purchase" placeholder="150000" oninput="updateKnownTotal()">
+      <input class="field-input" type="number" id="known-purchase" placeholder="150000" oninput="updateKnownTotal()" />
       <div class="field-label">How much will fixing it up cost?</div>
-      <input class="field-input" type="number" id="known-rehab" placeholder="40000" oninput="updateKnownTotal()">
+      <input class="field-input" type="number" id="known-rehab" placeholder="40000" oninput="updateKnownTotal()" />
       <div class="total-row" style="margin-top:8px;">
         <span class="total-label">Your total cost</span>
         <span class="total-value" id="known-total">$0</span>
@@ -594,7 +595,7 @@
 
     <div class="field-label">Type your zip code here</div>
     <div class="zip-row">
-      <input type="text" id="zip-input" placeholder="Enter zip code..." maxlength="5">
+      <input type="text" id="zip-input" placeholder="Enter zip code..." maxlength="5" />
       <button class="zip-btn" onclick="searchVendors()">Search</button>
     </div>
 
@@ -602,12 +603,12 @@
 
     <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:8px;">Investor friendly pros near your zip code</div>
     <div class="filter-row">
-      <button class="filter-btn active" onclick="filterVendors(&#39;all&#39;, this)">All</button>
-      <button class="filter-btn" onclick="filterVendors(&#39;realtor&#39;, this)">Realtors</button>
-      <button class="filter-btn" onclick="filterVendors(&#39;lender&#39;, this)">Hard Money</button>
-      <button class="filter-btn" onclick="filterVendors(&#39;dscr&#39;, this)">DSCR Lenders</button>
-      <button class="filter-btn" onclick="filterVendors(&#39;title&#39;, this)">Title Companies</button>
-      <button class="filter-btn" onclick="filterVendors(&#39;contractor&#39;, this)">Contractors</button>
+      <button class="filter-btn active" onclick="filterVendors('all', this)">All</button>
+      <button class="filter-btn" onclick="filterVendors('realtor', this)">Realtors</button>
+      <button class="filter-btn" onclick="filterVendors('lender', this)">Hard Money</button>
+      <button class="filter-btn" onclick="filterVendors('dscr', this)">DSCR Lenders</button>
+      <button class="filter-btn" onclick="filterVendors('title', this)">Title Companies</button>
+      <button class="filter-btn" onclick="filterVendors('contractor', this)">Contractors</button>
     </div>
 
     <div id="vendor-loading" class="loading hidden">
@@ -631,7 +632,7 @@
           <div class="price-label">/month<br>Be featured #1</div>
         </div>
       </div>
-      <button class="big-btn big-btn-yellow" style="background:var(--yellow);color:#7a5c00;font-weight:700;" onclick="alert(&#39;Vendor signup coming soon! Email hello@jackiethehappyinvestor.com to get listed early.&#39;)">
+      <button class="big-btn big-btn-yellow" style="background:var(--yellow);color:#7a5c00;font-weight:700;" onclick="alert('Vendor signup coming soon! Email hello@jackiethehappyinvestor.com to get listed early.')">
         List my business
       </button>
     </div>
@@ -675,9 +676,11 @@
 
       try {
         const encoded = encodeURIComponent(address);
+        const proxyUrl = 'https://corsproxy.io/?';
+        const rentcastUrl = `https://api.rentcast.io/v1/avm/value?address=${encoded}`;
         const res = await fetch(
-          `https://api.rentcast.io/v1/avm/value?address=${encoded}`,
-          { headers: { 'X-Api-Key': RENTCAST_KEY, 'Accept': 'application/json' } }
+          proxyUrl + encodeURIComponent(rentcastUrl),
+          { headers: { 'X-Api-Key': '431cd4db8c294b0eb1180050901e6e39', 'Accept': 'application/json' } }
         );
 
         if (!res.ok) throw new Error('Could not find data for this address.');
@@ -853,8 +856,9 @@
 
       try {
         const types = Object.keys(vendorTypes);
-        const promises = types.map(type =>
-          fetch(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(vendorTypes[type])}&location=${zip}&radius=25000&key=${GOOGLE_KEY}`)
+        const promises = types.map(type => {
+          const googleUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(vendorTypes[type] + ' ' + zip)}&key=AIzaSyAQYfLlnpDIx11ZeWK-yl9_Jl9jSEXj3Og`;
+          return fetch('https://corsproxy.io/?' + encodeURIComponent(googleUrl))
             .then(r => r.json())
             .then(data => (data.results || []).slice(0, 3).map(p => ({
               name: p.name,
@@ -907,6 +911,5 @@
       `).join('');
     }
   </script>
-
-
-</body></html>
+</body>
+</html>

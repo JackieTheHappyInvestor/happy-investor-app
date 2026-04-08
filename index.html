@@ -4,7 +4,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Jackie The Happy Investor</title>
-<link href="file:///C:/Users/Jacki/Downloads/index_files/css2" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A1A1A;min-height:100vh}
@@ -472,7 +472,7 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 </div>
 
 <script>
-var arv=0,vendors=[],cf='all',knowOpen=false;
+var arv=0,vendors=[],cf='all',knowOpen=false,showAll=false;
 var vt={realtor:'real estate agent investor friendly',lender:'hard money lender real estate',dscr:'DSCR lender real estate investor',title:'title company real estate',contractor:'general contractor home renovation'};
 var vi={realtor:'🏡',lender:'💰',dscr:'🏦',title:'📋',contractor:'🔨'};
 var vl={realtor:'Realtor',lender:'Hard Money Lender',dscr:'DSCR Lender',title:'Title Company',contractor:'Contractor'};
@@ -577,7 +577,16 @@ function resetDeal(){
   document.getElementById('arv-display').innerHTML='';
   document.getElementById('verdict-block').innerHTML='';
   document.getElementById('jackie-msg').style.display='none';
+  var jt=document.getElementById('jackie-txt');if(jt)jt.textContent='';
+  var ae=document.getElementById('arv-err');if(ae){ae.style.display='none';ae.textContent='';}
   document.getElementById('total-disp').textContent='$0';
+  var ka=document.getElementById('k-arv');if(ka)ka.value='';
+  var kp=document.getElementById('k-purchase');if(kp)kp.value='';
+  var kr=document.getElementById('k-rehab');if(kr)kr.value='';
+  var kal=document.getElementById('k-allin');if(kal)kal.textContent='$0';
+  var kt=document.getElementById('k-total');if(kt)kt.textContent='$0';
+  var kv=document.getElementById('k-verdict');if(kv){kv.innerHTML='';kv.classList.add('hidden');}
+  var ab=document.getElementById('arv-btn');if(ab){ab.classList.remove('loading');ab.textContent='Get ARV & Analyze Deal';}
   document.getElementById('pip1').className='step-pip active';
   document.getElementById('pip2').className='step-pip';
   document.getElementById('pip3').className='step-pip';
@@ -605,11 +614,12 @@ function findTeam(){
   document.getElementById('team-results').innerHTML='';
   document.getElementById('team-err').style.display='none';
   vendors=[];
+  showAll=false;
   var types=Object.keys(vt),done=0;
   types.forEach(function(type){
     fetch('/api/team?zip='+zip+'&type='+encodeURIComponent(vt[type]))
     .then(function(r){return r.json();})
-    .then(function(d){(d.results||[]).slice(0,10).forEach(function(p){vendors.push({name:p.name,address:p.formatted_address,rating:p.rating,type:type});});})
+    .then(function(d){(d.results||[]).forEach(function(p){vendors.push({name:p.name,address:p.formatted_address,rating:p.rating,type:type});});})
     .catch(function(){})
     .finally(function(){
       done++;
@@ -624,6 +634,7 @@ function findTeam(){
 
 function filt(type,btn){
   cf=type;
+  showAll=false;
   document.querySelectorAll('.f-chip').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
   renderTeam();
@@ -665,7 +676,30 @@ function renderHistory(){
 function renderTeam(){
   var list=cf==='all'?vendors:vendors.filter(function(v){return v.type===cf;});
   if(!list.length){document.getElementById('team-results').innerHTML='<div style="text-align:center;padding:24px;color:#aaa;font-size:13px">No results for this category. Try another!</div>';return;}
-  document.getElementById('team-results').innerHTML=list.map(function(v){return '<div class="vcard"><div class="v-icon" style="background:'+vc[v.type]+'">'+vi[v.type]+'</div><div style="flex:1"><div class="v-name">'+v.name+'</div><div class="v-type">'+vl[v.type]+'</div>'+(v.rating?'<div class="v-rating">'+v.rating+' stars</div>':'')+'<div class="v-addr">'+(v.address||'')+'</div></div></div>';}).join('');
+  var initialLimit=5;
+  var displayList;
+  if(showAll){
+    displayList=list;
+  }else if(cf==='all'){
+    var byType={};
+    displayList=[];
+    list.forEach(function(v){
+      byType[v.type]=byType[v.type]||0;
+      if(byType[v.type]<initialLimit){displayList.push(v);byType[v.type]++;}
+    });
+  }else{
+    displayList=list.slice(0,initialLimit);
+  }
+  var html=displayList.map(function(v){return '<div class="vcard"><div class="v-icon" style="background:'+vc[v.type]+'">'+vi[v.type]+'</div><div style="flex:1"><div class="v-name">'+v.name+'</div><div class="v-type">'+vl[v.type]+'</div>'+(v.rating?'<div class="v-rating">'+v.rating+' stars</div>':'')+'<div class="v-addr">'+(v.address||'')+'</div></div></div>';}).join('');
+  var remaining=list.length-displayList.length;
+  if(!showAll&&remaining>0){
+    html+='<button onclick="loadMoreTeam()" style="width:100%;margin-top:14px;padding:14px;border:none;border-radius:14px;background:#29D0F5;color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(41,208,245,0.25)">Show more results ('+remaining+' more)</button>';
+  }
+  document.getElementById('team-results').innerHTML=html;
+}
+function loadMoreTeam(){
+  showAll=true;
+  renderTeam();
 }
 </script>
 

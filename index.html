@@ -592,6 +592,9 @@ function resetDeal(){
   document.getElementById('pip3').className='step-pip';
   document.getElementById('step-label').textContent='Step 1 of 2';
   arv=0;
+  knowOpen=false;
+  var ks=document.getElementById('know-section');if(ks)ks.classList.add('hidden');
+  var kb=document.getElementById('know-toggle');if(kb)kb.textContent='Already know the ARV? Click here';
   window.scrollTo(0,0);
 }
 

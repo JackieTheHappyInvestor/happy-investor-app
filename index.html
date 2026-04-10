@@ -629,6 +629,10 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 </div>
 
 <script>
+var SUPABASE_URL='https://bpvxfchfzolbczpvlqpo.supabase.co';
+var SUPABASE_KEY='sb_publishable_TdiZtjzvQGcTfZb18-b0VA_2obGwmkB';
+var sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+var currentUser=null,currentProfile=null,isSubscribed=false;
 var arv=0,vendors=[],cf='all',knowOpen=false,showAll=false;
 var vt={realtor:'real estate agent investor friendly',lender:'hard money lender real estate',dscr:'DSCR lender real estate investor',title:'title company real estate',contractor:'general contractor home renovation'};
 var vi={realtor:'🏡',lender:'💰',dscr:'🏦',title:'📋',contractor:'🔨'};
@@ -861,6 +865,122 @@ function loadMoreTeam(){
   showAll=true;
   renderTeam();
 }
+
+// ============= AUTH =============
+function authTab(t){
+  document.getElementById('auth-signup').style.display=(t==='signup')?'block':'none';
+  document.getElementById('auth-login').style.display=(t==='login')?'block':'none';
+  document.getElementById('auth-reset').style.display=(t==='reset')?'block':'none';
+  document.getElementById('at-signup').classList.toggle('active',t==='signup');
+  document.getElementById('at-login').classList.toggle('active',t==='login'||t==='reset');
+}
+
+function showErr(id,msg){var e=document.getElementById(id);e.textContent=msg;e.style.display='block';}
+function hideErr(id){var e=document.getElementById(id);if(e)e.style.display='none';}
+
+async function signUp(){
+  hideErr('signup-err');
+  var fn=document.getElementById('signup-firstname').value.trim();
+  var em=document.getElementById('signup-email').value.trim();
+  var pw=document.getElementById('signup-password').value;
+  if(!fn||!em||!pw){showErr('signup-err','Please fill in all fields');return;}
+  if(pw.length<6){showErr('signup-err','Password must be at least 6 characters');return;}
+  var btn=document.getElementById('signup-btn');
+  btn.disabled=true;btn.textContent='Creating account...';
+  try{
+    var r=await sb.auth.signUp({email:em,password:pw,options:{data:{first_name:fn}}});
+    if(r.error){showErr('signup-err',r.error.message);btn.disabled=false;btn.textContent='Create account';return;}
+    await loadUser();
+    go('pricing');
+  }catch(e){showErr('signup-err','Something went wrong. Please try again.');btn.disabled=false;btn.textContent='Create account';}
+}
+
+async function signIn(){
+  hideErr('login-err');
+  var em=document.getElementById('login-email').value.trim();
+  var pw=document.getElementById('login-password').value;
+  if(!em||!pw){showErr('login-err','Please enter email and password');return;}
+  var btn=document.getElementById('login-btn');
+  btn.disabled=true;btn.textContent='Logging in...';
+  try{
+    var r=await sb.auth.signInWithPassword({email:em,password:pw});
+    if(r.error){showErr('login-err','Incorrect email or password');btn.disabled=false;btn.textContent='Log in';return;}
+    await loadUser();
+    go(isSubscribed?'home':'pricing');
+  }catch(e){showErr('login-err','Something went wrong. Please try again.');btn.disabled=false;btn.textContent='Log in';}
+}
+
+async function signOut(){
+  await sb.auth.signOut();
+  currentUser=null;currentProfile=null;isSubscribed=false;
+  updateUserBar();
+  go('home');
+}
+
+async function sendReset(){
+  hideErr('reset-err');hideErr('reset-ok');
+  var em=document.getElementById('reset-email').value.trim();
+  if(!em){showErr('reset-err','Please enter your email');return;}
+  var btn=document.getElementById('reset-btn');
+  btn.disabled=true;btn.textContent='Sending...';
+  try{
+    var r=await sb.auth.resetPasswordForEmail(em,{redirectTo:'https://happy-investor-app.vercel.app'});
+    if(r.error){showErr('reset-err',r.error.message);btn.disabled=false;btn.textContent='Send reset link';return;}
+    var ok=document.getElementById('reset-ok');
+    ok.textContent='Check your email for a reset link';ok.style.display='block';
+    btn.disabled=false;btn.textContent='Send reset link';
+  }catch(e){showErr('reset-err','Something went wrong. Please try again.');btn.disabled=false;btn.textContent='Send reset link';}
+}
+
+async function loadUser(){
+  try{
+    var ur=await sb.auth.getUser();
+    if(!ur.data||!ur.data.user){currentUser=null;currentProfile=null;isSubscribed=false;updateUserBar();return;}
+    currentUser=ur.data.user;
+    var pr=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
+    if(pr.data)currentProfile=pr.data;
+    var sr=await sb.from('subscriptions').select('*').eq('user_id',currentUser.id).single();
+    if(sr.data){isSubscribed=(sr.data.status==='active'||sr.data.status==='trialing');}
+    updateUserBar();
+  }catch(e){console.error('loadUser error',e);}
+}
+
+function updateUserBar(){
+  var guest=document.getElementById('ub-guest');
+  var user=document.getElementById('ub-user');
+  var loginBtn=document.getElementById('ub-login-btn');
+  var logoutBtn=document.getElementById('ub-logout-btn');
+  if(!guest)return;
+  if(currentUser){
+    guest.style.display='none';
+    user.style.display='flex';
+    loginBtn.style.display='none';
+    logoutBtn.style.display='inline-block';
+    var fn=(currentProfile&&currentProfile.first_name)||currentUser.email.split('@')[0];
+    document.getElementById('ub-firstname').textContent=fn;
+    document.getElementById('ub-initial').textContent=fn.charAt(0).toUpperCase();
+    var badge=document.getElementById('ub-badge');
+    if(isSubscribed){badge.textContent='Pro';badge.classList.remove('inactive');}
+    else{badge.textContent='Free';badge.classList.add('inactive');}
+  }else{
+    guest.style.display='flex';
+    user.style.display='none';
+    loginBtn.style.display='inline-block';
+    logoutBtn.style.display='none';
+  }
+}
+
+function startSubscribe(){
+  if(!currentUser){go('auth');return;}
+  alert('Stripe checkout coming soon! This will be live in the next milestone.');
+}
+
+// Init
+sb.auth.onAuthStateChange(function(event,session){
+  if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'){loadUser();}
+  if(event==='SIGNED_OUT'){currentUser=null;currentProfile=null;isSubscribed=false;}
+});
+loadUser();
 </script>
 
 </body></html>

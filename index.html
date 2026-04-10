@@ -201,6 +201,21 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 </div>
 <div class="tagline">Real Estate Investing Simplified • Jackie The Happy Investor Method™</div>
 
+<div class="user-bar" id="user-bar">
+  <div class="ub-left" id="ub-guest">
+    <span style="color:#6B6B6B">Guest</span>
+  </div>
+  <div class="ub-left" id="ub-user" style="display:none">
+    <div class="ub-avatar" id="ub-initial">?</div>
+    <div><div class="ub-name" id="ub-firstname">User</div></div>
+    <span class="ub-badge" id="ub-badge">Free</span>
+  </div>
+  <div>
+    <button class="ub-btn" id="ub-login-btn" onclick="go('auth')">Sign in</button>
+    <button class="ub-btn" id="ub-logout-btn" style="display:none" onclick="signOut()">Sign out</button>
+  </div>
+</div>
+
 <div class="top-nav">
   <button class="nav-btn nav-home active" id="t-home" onclick="go(&#39;home&#39;)">Home</button>
   <button class="nav-btn nav-deal" id="t-deal" onclick="go(&#39;deal&#39;)">Analyze a Deal</button>
@@ -519,6 +534,96 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="s-auth" class="screen">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="at-signup" onclick="authTab('signup')">Sign up</button>
+        <button class="auth-tab" id="at-login" onclick="authTab('login')">Log in</button>
+      </div>
+
+      <div id="auth-signup">
+        <div class="auth-title">Create your account</div>
+        <div class="auth-sub">Start analyzing deals like a pro</div>
+        <div class="auth-error" id="signup-err"></div>
+        <div class="auth-field">
+          <label>First name</label>
+          <input type="text" id="signup-firstname" placeholder="Jackie">
+        </div>
+        <div class="auth-field">
+          <label>Email</label>
+          <input type="email" id="signup-email" placeholder="you@example.com">
+        </div>
+        <div class="auth-field">
+          <label>Password</label>
+          <input type="password" id="signup-password" placeholder="At least 6 characters">
+        </div>
+        <button class="auth-btn" id="signup-btn" onclick="signUp()">Create account</button>
+      </div>
+
+      <div id="auth-login" style="display:none">
+        <div class="auth-title">Welcome back</div>
+        <div class="auth-sub">Log in to continue</div>
+        <div class="auth-error" id="login-err"></div>
+        <div class="auth-field">
+          <label>Email</label>
+          <input type="email" id="login-email" placeholder="you@example.com">
+        </div>
+        <div class="auth-field">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="Your password">
+        </div>
+        <button class="auth-btn" id="login-btn" onclick="signIn()">Log in</button>
+        <button class="auth-link" onclick="authTab('reset')">Forgot your password?</button>
+      </div>
+
+      <div id="auth-reset" style="display:none">
+        <div class="auth-title">Reset your password</div>
+        <div class="auth-sub">We'll email you a link to set a new password</div>
+        <div class="auth-error" id="reset-err"></div>
+        <div class="auth-success" id="reset-ok"></div>
+        <div class="auth-field">
+          <label>Email</label>
+          <input type="email" id="reset-email" placeholder="you@example.com">
+        </div>
+        <button class="auth-btn" id="reset-btn" onclick="sendReset()">Send reset link</button>
+        <button class="auth-link" onclick="authTab('login')">← Back to log in</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING SCREEN -->
+<div id="s-pricing" class="screen">
+  <div class="pricing-wrap">
+    <div class="pricing-hero">
+      <div class="ph-eyebrow">Unlock Full Access</div>
+      <h2>Analyze unlimited deals and build your team</h2>
+      <p>Get instant ARVs, local comps, and investor-friendly pros — all in one place.</p>
+    </div>
+    <div class="price-card">
+      <div class="pc-name">Happy Investor Pro</div>
+      <div class="pc-amount">
+        <span class="pc-dollar">$</span>
+        <span class="pc-num">37</span>
+        <span class="pc-per">/month</span>
+      </div>
+      <ul>
+        <li>Unlimited ARV lookups with real comps</li>
+        <li>Find vetted realtors, lenders, and contractors</li>
+        <li>What If calculator for renovations</li>
+        <li>Deal history tracking</li>
+        <li>Cancel anytime</li>
+      </ul>
+      <button class="pc-btn" onclick="startSubscribe()">Start Now — $37/mo</button>
+    </div>
+    <div class="price-footnote">
+      Already have an account? <a href="#" onclick="go('auth');return false">Log in</a>
     </div>
   </div>
 </div>

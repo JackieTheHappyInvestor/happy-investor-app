@@ -895,7 +895,13 @@ async function signUp(){
   btn.disabled=true;btn.textContent='Creating account...';
   try{
     var r=await sb.auth.signUp({email:em,password:pw,options:{data:{first_name:fn}}});
-    if(r.error){showErr('signup-err',r.error.message);btn.disabled=false;btn.textContent='Create account';return;}
+if(r.error){
+      var msg=r.error.message||'Something went wrong';
+      if(msg.toLowerCase().indexOf('already registered')>-1||msg.toLowerCase().indexOf('already exists')>-1)msg='That email is already registered. Try logging in instead.';
+      else if(msg.toLowerCase().indexOf('password')>-1)msg='Password must be at least 6 characters.';
+      else if(msg.toLowerCase().indexOf('email')>-1)msg='Please enter a valid email address.';
+      showErr('signup-err',msg);btn.disabled=false;btn.textContent='Create account';return;
+    }
     await loadUser();
     go('pricing');
   }catch(e){showErr('signup-err','Something went wrong. Please try again.');btn.disabled=false;btn.textContent='Create account';}
@@ -931,7 +937,11 @@ async function sendReset(){
   btn.disabled=true;btn.textContent='Sending...';
   try{
     var r=await sb.auth.resetPasswordForEmail(em,{redirectTo:'https://happy-investor-app.vercel.app'});
-    if(r.error){showErr('reset-err',r.error.message);btn.disabled=false;btn.textContent='Send reset link';return;}
+if(r.error){
+      var msg=r.error.message||'Something went wrong';
+      if(msg.toLowerCase().indexOf('email')>-1)msg='Please enter a valid email address.';
+      showErr('reset-err',msg);btn.disabled=false;btn.textContent='Send reset link';return;
+    }
     var ok=document.getElementById('reset-ok');
     ok.textContent='Check your email for a reset link';ok.style.display='block';
     btn.disabled=false;btn.textContent='Send reset link';

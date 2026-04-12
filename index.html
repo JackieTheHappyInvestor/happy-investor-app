@@ -992,7 +992,7 @@ function startSubscribe(){
 }
 
 // Init
-sb.auth.onAuthStateChange(function(event,session){
+if(window.location.hash&&window.location.hash.indexOf('type=recovery')>-1){setTimeout(async function(){var newPw=prompt('Enter your new password (at least 6 characters):');if(newPw&&newPw.length>=6){try{var r=await sb.auth.updateUser({password:newPw});if(r.error){alert('Could not update password: '+r.error.message);}else{alert('Password updated! You are now logged in.');window.location.hash='';await loadUser();go('home');}}catch(e){alert('Something went wrong. Please try again.');}}else if(newPw!==null){alert('Password must be at least 6 characters.');}},500);}sb.auth.onAuthStateChange(function(event,session){
   if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'){loadUser();}
   if(event==='SIGNED_OUT'){currentUser=null;currentProfile=null;isSubscribed=false;}
 });

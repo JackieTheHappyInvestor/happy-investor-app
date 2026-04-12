@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- saved from url=(0058)file:///C:/Users/Jacki/Downloads/The_Happy_Investor_1.html -->
+<!-- saved from url=(0046)file:///C:/Users/Jacki/Downloads/index_58.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Jackie The Happy Investor</title>
-<link href="file:///C:/Users/Jacki/Downloads/The%20Happy%20Investor_files/css2" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A1A1A;min-height:100vh}
@@ -193,8 +193,8 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 .comp-dist{font-size:10px;color:#aaa;margin-top:2px}
 .comp-price{color:#FF5FA0;font-weight:700;font-size:13px;white-space:nowrap}.site-callout{text-align:center;font-size:12px;color:#6B6B6B;font-weight:300;margin-top:24px;padding:16px;line-height:1.6}.site-callout a{color:#FF5FA0;font-weight:600;text-decoration:none}
 </style>
-<script src="file:///C:/Users/Jacki/Downloads/The%20Happy%20Investor_files/supabase.min.js.download"></script>
-<link type="text/css" rel="stylesheet" href="chrome-extension://fheoggkfdfchfphceeifdbepaooicaho/css/mcafee_fonts.css"></head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
 <body>
 
 <div class="app-header">
@@ -203,25 +203,25 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 <div class="tagline">Real Estate Investing Simplified • Jackie The Happy Investor Method™</div>
 
 <div class="user-bar" id="user-bar">
-  <div class="ub-left" id="ub-guest" style="display: none;">
+  <div class="ub-left" id="ub-guest">
     <span style="color:#6B6B6B">Guest</span>
   </div>
-  <div class="ub-left" id="ub-user" style="display: flex;">
-    <div class="ub-avatar" id="ub-initial">J</div>
-    <div><div class="ub-name" id="ub-firstname">Jackie Caruso</div></div>
-    <span class="ub-badge" id="ub-badge">Pro</span>
+  <div class="ub-left" id="ub-user" style="display:none">
+    <div class="ub-avatar" id="ub-initial">?</div>
+    <div><div class="ub-name" id="ub-firstname">User</div></div>
+    <span class="ub-badge" id="ub-badge">Free</span>
   </div>
   <div>
-    <button class="ub-btn" id="ub-login-btn" onclick="go(&#39;auth&#39;)" fdprocessedid="uq9hf" style="display: none;">Sign in</button>
-    <button class="ub-btn" id="ub-logout-btn" style="display: inline-block;" onclick="signOut()" fdprocessedid="mebcpj">Sign out</button>
+    <button class="ub-btn" id="ub-login-btn" onclick="go('auth')">Sign in</button>
+    <button class="ub-btn" id="ub-logout-btn" style="display:none" onclick="signOut()">Sign out</button>
   </div>
 </div>
 
 <div class="top-nav">
-  <button class="nav-btn nav-home active" id="t-home" onclick="go(&#39;home&#39;)" fdprocessedid="le21pm">Home</button>
-  <button class="nav-btn nav-deal" id="t-deal" onclick="go(&#39;deal&#39;)" fdprocessedid="ogo74p">Analyze a Deal</button>
-  <button class="nav-btn nav-team" id="t-team" onclick="go(&#39;team&#39;)" fdprocessedid="at89m">Find My Team</button>
-  <button class="nav-btn nav-history" id="t-history" onclick="go(&#39;history&#39;)" fdprocessedid="3o3av">Deal History</button>
+  <button class="nav-btn nav-home active" id="t-home" onclick="go(&#39;home&#39;)">Home</button>
+  <button class="nav-btn nav-deal" id="t-deal" onclick="go(&#39;deal&#39;)">Analyze a Deal</button>
+  <button class="nav-btn nav-team" id="t-team" onclick="go(&#39;team&#39;)">Find My Team</button>
+  <button class="nav-btn nav-history" id="t-history" onclick="go(&#39;history&#39;)">Deal History</button>
 </div>
 
 <!-- HOME -->
@@ -278,32 +278,32 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 <div id="s-deal" class="screen">
   <div class="deal-wrap">
     <div class="deal-header">
-      <div class="deal-eyebrow">DEAL ANALYZER <span>• <span id="step-label">Step 2 of 2</span></span></div>
+      <div class="deal-eyebrow">DEAL ANALYZER <span>• <span id="step-label">Step 1 of 2</span></span></div>
       <div class="deal-title">Should I Buy This House?</div>
       <div class="deal-subtitle">Let's quickly find the value and see if it's a deal.</div>
     </div>
     <div class="steps-bar">
-      <div class="step-pip done" id="pip1"></div>
-      <div class="step-pip active" id="pip2"></div>
+      <div class="step-pip active" id="pip1"></div>
+      <div class="step-pip" id="pip2"></div>
       <div class="step-pip" id="pip3"></div>
     </div>
     <div class="deal-section">
 
-      <div id="step1" class="hidden">
+      <div id="step1">
         <div class="main-card">
           <div class="card-step-label"><em>Step 1:</em> Enter the Property Address</div>
           <div class="card-step-sub">We'll estimate the value (ARV) for you instantly.</div>
           <div class="input-wrap">
             <span class="input-icon">📍</span>
-            <input class="addr-input" type="text" id="addr" placeholder="Enter property address (ex: 123 Main St, Dallas TX)" fdprocessedid="t7aqmv">
+            <input class="addr-input" type="text" id="addr" placeholder="Enter property address (ex: 123 Main St, Dallas TX)">
           </div>
           <div class="helper">We'll pull nearby comps and estimate the after-repair value.</div>
-          <button class="arv-btn" id="arv-btn" onclick="findARV()" fdprocessedid="hte7wt">Get ARV &amp; Analyze Deal</button>
-          <div class="loading-area" id="arv-load" style="display: none;">
+          <button class="arv-btn" id="arv-btn" onclick="findARV()">Get ARV &amp; Analyze Deal</button>
+          <div class="loading-area" id="arv-load">
             <div class="spin"></div>
             <div class="loading-text" id="load-txt">Checking nearby sales...</div>
           </div>
-          <div class="err-card" id="arv-err" style="display: none;"></div>
+          <div class="err-card" id="arv-err"></div>
         </div>
         <div class="tip-card">
           <div class="tip-top">
@@ -314,7 +314,7 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
           <div class="tip-body">That's exactly why this tool is here. Just type in the address and let the app help you do the math.</div>
           <div class="tip-note">Keep it simple. One house at a time.</div>
         </div>
-        <button class="know-toggle" id="know-toggle" onclick="toggleKnow()" fdprocessedid="felgu">Already know the ARV? Click here</button>
+        <button class="know-toggle" id="know-toggle" onclick="toggleKnow()">Already know the ARV? Click here</button>
         <div id="know-section" class="hidden">
           <div class="main-card" style="margin-top:16px">
             <div class="card-step-label"><em>Quick Calc:</em> I Already Know the ARV</div>
@@ -340,22 +340,22 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
         </div>
       </div>
 
-      <div id="step2" class="">
-        <div class="arv-result-card" id="arv-display"><div class="arv-lbl">Based on nearby sold homes, this house could be worth</div><div class="arv-value">$405,000</div><div class="arv-note">after repairs — this is your ARV (After Repair Value)</div><div class="allin-block"><div><div class="allin-left">Your all-in number (ARV x 70%)<small>Stay at or under this number</small></div></div><div class="allin-right">$283,500</div></div><div class="comps-wrap"><div class="comps-header">Comparable homes</div><div class="comps-meta">Based on 5 sales in the last 90 days within 1 mile</div><div class="comp-row"><div class="comp-addr">237 Katy Lake Dr, Waxahachie, TX 75165<div class="comp-dist">0.36 mi away · 68 days ago · 3bd/2ba</div></div><div class="comp-price">$639,900</div></div><div class="comp-row"><div class="comp-addr">818 Amherst Dr, Waxahachie, TX 75165<div class="comp-dist">0.90 mi away · 62 days ago · 3bd/2ba</div></div><div class="comp-price">$464,900</div></div><div class="comp-row"><div class="comp-addr">1116 W Jefferson St, Waxahachie, TX 75165<div class="comp-dist">0.70 mi away · 63 days ago · 3bd/2ba</div></div><div class="comp-price">$449,500</div></div><div class="comp-row"><div class="comp-addr">503 Northgate Dr, Waxahachie, TX 75165<div class="comp-dist">0.78 mi away · 1 day ago · 3bd/2.5ba</div></div><div class="comp-price">$419,900</div></div><div class="comp-row"><div class="comp-addr">701 Queens Dr, Waxahachie, TX 75165<div class="comp-dist">0.59 mi away · 24 days ago · 3bd/2ba</div></div><div class="comp-price">$343,900</div></div></div></div>
+      <div id="step2" class="hidden">
+        <div class="arv-result-card" id="arv-display"></div>
         <div class="step2-card">
           <div class="card-step-label" style="margin-bottom:6px"><em>Step 2:</em> Enter Your Costs</div>
           <div class="card-step-sub">Add what you're spending so Jackie can run the numbers.</div>
           <div class="field-lbl">What are you paying for the house?</div>
-          <input class="num-input" type="number" id="purchase" placeholder="150000" oninput="calcTotal()" fdprocessedid="icka8o">
+          <input class="num-input" type="number" id="purchase" placeholder="150000" oninput="calcTotal()">
           <div class="field-lbl">How much will fixing it up cost?</div>
-          <input class="num-input" type="number" id="rehab" placeholder="40000" oninput="calcTotal()" fdprocessedid="fdbshs">
+          <input class="num-input" type="number" id="rehab" placeholder="40000" oninput="calcTotal()">
           <div class="total-row">
             <span style="font-size:13px;color:#6B6B6B;font-weight:300">Your total cost</span>
             <span style="font-size:18px;font-weight:700" id="total-disp">$0</span>
           </div>
           <br>
-          <button class="btn btn-pink" onclick="calcDeal()" fdprocessedid="9f4x4c">Show Me The Verdict!</button>
-          <button class="btn btn-ghost" onclick="resetDeal()" style="margin-top:0" fdprocessedid="csey9f">← Start Over</button>
+          <button class="btn btn-pink" onclick="calcDeal()">Show Me The Verdict!</button>
+          <button class="btn btn-ghost" onclick="resetDeal()" style="margin-top:0">← Start Over</button>
         </div>
       </div>
 
@@ -376,7 +376,7 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
         </div>
         <button class="btn" style="background:#00C853;color:#fff;box-shadow:0 6px 20px rgba(0,200,83,0.25);margin-top:0" onclick="shareResult()">🔗 Share This Deal</button>
         <button class="btn btn-ghost" onclick="resetDeal()" style="margin-top:0">← Analyze Another House</button>
-        <button class="btn btn-teal" onclick="go(&#39;team&#39;)" style="margin-top:0">Find My Team Nearby</button><div class="site-callout">For more training and help, visit <a href="https://jackiethehappyinvestor.com/" target="_blank">JackieTheHappyInvestor.com</a></div>
+        <button class="btn btn-teal" onclick="go(&#39;team&#39;)" style="margin-top:0">Find My Team Nearby</button><div class="site-callout">For more training and help, visit <a href="https://jackiethehappyinvestor.com" target="_blank">JackieTheHappyInvestor.com</a></div>
       </div>
 
     </div>
@@ -401,14 +401,14 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
           <div class="tip-body">Every deal you analyze gets saved right here automatically. Come back anytime to review what you've looked at and track your progress.</div>
           <div class="tip-note">Reviewing old deals makes you a smarter investor.</div>
         </div>
-      <div id="history-empty" class="tip-card" style="text-align: center; border-color: rgb(238, 238, 238); display: none;">
+      <div id="history-empty" class="tip-card" style="text-align: center; border-color: rgb(238, 238, 238); display: block;">
         <div style="font-size:40px;margin-bottom:12px">🏠</div>
         <div class="tip-title" style="text-align:center">No deals yet!</div>
         <div class="tip-body" style="text-align:center">Every deal you analyze will be saved here automatically. Go analyze your first deal!</div>
         <br>
-        <button class="btn btn-pink" onclick="go(&#39;deal&#39;)">Analyze a Deal</button><div class="site-callout">For more training and help, visit <a href="https://jackiethehappyinvestor.com/" target="_blank">JackieTheHappyInvestor.com</a></div>
+        <button class="btn btn-pink" onclick="go(&#39;deal&#39;)">Analyze a Deal</button><div class="site-callout">For more training and help, visit <a href="https://jackiethehappyinvestor.com" target="_blank">JackieTheHappyInvestor.com</a></div>
       </div>
-      <div id="history-list"><div style="background:#fff;border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:0 4px 16px rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:space-between;gap:12px"><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#1A1A1A;margin-bottom:2px">306 perry avenue waxahachie Texas</div><div style="font-size:11px;color:#aaa;font-weight:300">4/12/2026 • ARV: $202,000</div></div><div style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;background:#00C853;color:#fff">DEAL</div></div><div style="background:#fff;border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:0 4px 16px rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:space-between;gap:12px"><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#1A1A1A;margin-bottom:2px">1411 sycamore street, waxahachie texas 75165</div><div style="font-size:11px;color:#aaa;font-weight:300">4/8/2026 • ARV: $433,000</div></div><div style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;background:#00C853;color:#fff">DEAL</div></div></div>
+      <div id="history-list"></div>
     </div>
   </div>
 </div>
@@ -446,8 +446,6 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
         <button class="f-chip" onclick="filt(&#39;dscr&#39;,this)">DSCR Lenders</button>
         <button class="f-chip" onclick="filt(&#39;title&#39;,this)">Title</button>
         <button class="f-chip" onclick="filt(&#39;contractor&#39;,this)">Contractors</button>
-        <button class="f-chip" onclick="filt(&#39;attorney&#39;,this)">Attorneys</button>
-        <button class="f-chip" onclick="filt(&#39;accountant&#39;,this)">Accountants</button>
       </div>
       <div class="t-load" id="team-load">
         <div class="spin" style="border-top-color:#29D0F5"></div>
@@ -456,18 +454,17 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
       <div id="team-results"></div>
       <div class="t-err" id="team-err"></div>
       <div class="vendor-cta">
-        <h3>Are you a real estate pro or vendor?</h3>
-        <p>Built for the little guys. Get discovered by real investors searching for pros in your area!</p>
-        <p style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:-12px;margin-bottom:16px;font-weight:300">Contractors • Lenders • Title Companies • Attorneys • Accountants &amp; more</p>
+        <h3>Are you a contractor or lender?</h3>
+        <p>Get in front of real investors actively looking for deals. The little guys deserve a spot too.</p>
         <div class="price-row">
-          <div class="p-card" style="background:#FF5FA0"><div class="amt" style="color:#fff">$19</div><div class="lbl" style="color:#fff">/month<br>Get listed</div></div>
-          <div class="p-card featured" style="background:#FF5FA0"><div class="amt" style="color:#fff">$49</div><div class="lbl" style="color:#fff">/month<br>Be featured #1</div></div>
+          <div class="p-card"><div class="amt">$19</div><div class="lbl">/month<br>Get listed</div></div>
+          <div class="p-card featured"><div class="amt">$49</div><div class="lbl">/month<br>Be featured #1</div></div>
         </div>
-        <button class="btn" style="background:#FFC247;color:#1A1A1A;box-shadow:0 6px 20px rgba(255,194,71,0.3);margin-bottom:0" onclick="alert(&#39;Vendor signup coming soon!&#39;)"><strong>List My Business</strong></button></div><div class="site-callout">For more training and help, visit <a href="https://jackiethehappyinvestor.com/" target="_blank">JackieTheHappyInvestor.com</a></div>
+        <button class="btn" style="background:#FFC247;color:#1A1A1A;box-shadow:0 6px 20px rgba(255,194,71,0.3);margin-bottom:0" onclick="alert(&#39;Vendor signup coming soon!&#39;)"><strong>List My Business</strong></button></div><div class="site-callout">For more training and help, visit <a href="https://jackiethehappyinvestor.com" target="_blank">JackieTheHappyInvestor.com</a></div>
       </div>
     </div>
   </div>
-
+</div>
 
 <!-- DEAL HISTORY -->
 <div id="s-history" class="screen">
@@ -547,11 +544,11 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
   <div class="auth-wrap">
     <div class="auth-card">
       <div class="auth-tabs">
-        <button class="auth-tab" id="at-signup" onclick="authTab(&#39;signup&#39;)" fdprocessedid="25d28e">Sign up</button>
-        <button class="auth-tab active" id="at-login" onclick="authTab(&#39;login&#39;)" fdprocessedid="uk18ja">Log in</button>
+        <button class="auth-tab active" id="at-signup" onclick="authTab('signup')">Sign up</button>
+        <button class="auth-tab" id="at-login" onclick="authTab('login')">Log in</button>
       </div>
 
-      <div id="auth-signup" style="display: none;">
+      <div id="auth-signup">
         <div class="auth-title">Create your account</div>
         <div class="auth-sub">Start analyzing deals like a pro</div>
         <div class="auth-error" id="signup-err"></div>
@@ -570,20 +567,20 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
         <button class="auth-btn" id="signup-btn" onclick="signUp()">Create account</button>
       </div>
 
-      <div id="auth-login" style="display: block;">
+      <div id="auth-login" style="display:none">
         <div class="auth-title">Welcome back</div>
         <div class="auth-sub">Log in to continue</div>
-        <div class="auth-error" id="login-err" style="display: none;"></div>
+        <div class="auth-error" id="login-err"></div>
         <div class="auth-field">
           <label>Email</label>
-          <input type="email" id="login-email" placeholder="you@example.com" fdprocessedid="yncba">
+          <input type="email" id="login-email" placeholder="you@example.com">
         </div>
         <div class="auth-field">
           <label>Password</label>
-          <input type="password" id="login-password" placeholder="Your password" fdprocessedid="r96jwu">
+          <input type="password" id="login-password" placeholder="Your password">
         </div>
-        <button class="auth-btn" id="login-btn" onclick="signIn()" disabled="">Logging in...</button>
-        <button class="auth-link" onclick="authTab(&#39;reset&#39;)" fdprocessedid="htf039">Forgot your password?</button>
+        <button class="auth-btn" id="login-btn" onclick="signIn()">Log in</button>
+        <button class="auth-link" onclick="authTab('reset')">Forgot your password?</button>
       </div>
 
       <div id="auth-reset" style="display:none">
@@ -596,7 +593,7 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
           <input type="email" id="reset-email" placeholder="you@example.com">
         </div>
         <button class="auth-btn" id="reset-btn" onclick="sendReset()">Send reset link</button>
-        <button class="auth-link" onclick="authTab(&#39;login&#39;)">← Back to log in</button>
+        <button class="auth-link" onclick="authTab('login')">← Back to log in</button>
       </div>
     </div>
   </div>
@@ -627,7 +624,7 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
       <button class="pc-btn" onclick="startSubscribe()">Start Now — $37/mo</button>
     </div>
     <div class="price-footnote">
-      Already have an account? <a href="https://happy-investor-app.vercel.app/#" onclick="go(&#39;auth&#39;);return false">Log in</a>
+      Already have an account? <a href="#" onclick="go('auth');return false">Log in</a>
     </div>
   </div>
 </div>
@@ -638,10 +635,10 @@ var SUPABASE_KEY='sb_publishable_TdiZtjzvQGcTfZb18-b0VA_2obGwmkB';
 var sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 var currentUser=null,currentProfile=null,isSubscribed=false;
 var arv=0,vendors=[],cf='all',knowOpen=false,showAll=false;
-var vt={realtor:'real estate agent investor friendly',lender:'hard money lender real estate',dscr:'DSCR lender real estate investor',title:'title company real estate',contractor:'general contractor home renovation',attorney:'real estate attorney law firm',accountant:'real estate accountant construction accountant CPA'};
-var vi={realtor:'🏡',lender:'💰',dscr:'🏦',title:'📋',contractor:'🔨',attorney:'⚖️',accountant:'📊'};
-var vl={realtor:'Realtor',lender:'Hard Money Lender',dscr:'DSCR Lender',title:'Title Company',contractor:'Contractor',attorney:'Real Estate Attorney',accountant:'RE/Construction Accountant'};
-var vc={realtor:'#fff0f5',lender:'#fffcf0',dscr:'#f0fbff',title:'#f5f0ff',contractor:'#f0fff5',attorney:'#fff5f0',accountant:'#f5fff0'};
+var vt={realtor:'real estate agent investor friendly',lender:'hard money lender real estate',dscr:'DSCR lender real estate investor',title:'title company real estate',contractor:'general contractor home renovation'};
+var vi={realtor:'🏡',lender:'💰',dscr:'🏦',title:'📋',contractor:'🔨'};
+var vl={realtor:'Realtor',lender:'Hard Money Lender',dscr:'DSCR Lender',title:'Title Company',contractor:'Contractor'};
+var vc={realtor:'#fff0f5',lender:'#fffcf0',dscr:'#f0fbff',title:'#f5f0ff',contractor:'#f0fff5'};
 
 function go(n){
   var protectedScreens=['deal','team','history'];
@@ -1002,73 +999,4 @@ if(window.location.hash&&window.location.hash.indexOf('type=recovery')>-1){setTi
 loadUser();
 </script>
 
-
-<span id="PING_IFRAME_FORM_DETECTION" style="display: none;"></span><span id="PING_CONTENT_DLS_POPUP" style="display: none;"></span><div style="background-color: transparent; border: none; bottom: 15px; display: block; margin: 0px; opacity: 1; padding: 0px; position: fixed; right: 15px; z-index: 2147483647;"><template shadowrootmode="closed"><style>/*!
- * 
- *     MCAFEE RESTRICTED CONFIDENTIAL
- *     Copyright (c) 2026 McAfee, LLC
- *
- *     The source code contained or described herein and all documents related
- *     to the source code ("Material") are owned by McAfee or its
- *     suppliers or licensors. Title to the Material remains with McAfee
- *     or its suppliers and licensors. The Material contains trade
- *     secrets and proprietary and confidential information of McAfee or its
- *     suppliers and licensors. The Material is protected by worldwide copyright
- *     and trade secret laws and treaty provisions. No part of the Material may
- *     be used, copied, reproduced, modified, published, uploaded, posted,
- *     transmitted, distributed, or disclosed in any way without McAfee's prior
- *     express written permission.
- *
- *     No license under any patent, copyright, trade secret or other intellectual
- *     property right is granted to or conferred upon you by disclosure or
- *     delivery of the Materials, either expressly, by implication, inducement,
- *     estoppel or otherwise. Any license under such intellectual property rights
- *     must be expressed and approved by McAfee in writing.
- *
- */
-@font-face{font-family:"McAfeePoppins";src:url("../../../fonts/Poppins-Thin.ttf") format("truetype");font-weight:100;font-style:normal}@font-face{font-family:"McAfeePoppins";src:url("../../../fonts/Poppins-ThinItalic.ttf") format("truetype");font-weight:100;font-style:italic}@font-face{font-family:"McAfeePoppins";src:url("../../../fonts/Poppins-ExtraLight.ttf") format("truetype");font-weight:200;font-style:normal}@font-face{font-family:"McAfeePoppins";src:url("../../../fonts/Poppins-ExtraLightItalic.ttf") format("truetype");font-weight:200;font-style:italic}@font-face{font-family:"McAfeePoppins";src:url("../../../fonts/Poppins-Light.ttf") format("truetype");font-weight:300;font-style:normal}@font-face{font-family:"McAfeePoppins";src:url("../../../fonts/Poppins-LightItalic.ttf") format("truetype");font-weight:300;font-style:italic}@font-face{font-family:"McAfeePoppins";src:url("../../../fonts/Poppins-Regular.ttf") format("truetype");font-weight:400;font-style:normal}@font-face{font-family:"McAfeePoppins";src:url("../../../fonts/Poppins-Italic.ttf") format("truetype");font-weight:400;font-style:italic}@font-face{font-family:"McAfeePoppins";src:url("../../../fonts/Poppins-Medium.ttf") format("truetype");font-weight:500;font-style:normal}@font-face{font-family:"McAfeePoppins";src:url("../../../fonts/Poppins-MediumItalic.ttf") format("truetype");font-weight:500;font-style:italic}@font-face{font-family:"McAfeePoppins";src:url("../../../fonts/Poppins-SemiBold.ttf") format("truetype");font-weight:600;font-style:normal}@font-face{font-family:"McAfeePoppins";src:url("../../../fonts/Poppins-SemiBoldItalic.ttf") format("truetype");font-weight:600;font-style:italic}@font-face{font-family:"McAfeePoppins";src:url("../../../fonts/Poppins-Bold.ttf") format("truetype");font-weight:700;font-style:normal}@font-face{font-family:"McAfeePoppins";src:url("../../../fonts/Poppins-BoldItalic.ttf") format("truetype");font-weight:700;font-style:italic}@font-face{font-family:"McAfeePoppins";src:url("../../../fonts/Poppins-ExtraBold.ttf") format("truetype");font-weight:800;font-style:normal}@font-face{font-family:"McAfeePoppins";src:url("../../../fonts/Poppins-ExtraBoldItalic.ttf") format("truetype");font-weight:800;font-style:italic}@font-face{font-family:"McAfeePoppins";src:url("../../../fonts/Poppins-Black.ttf") format("truetype");font-weight:900;font-style:normal}@font-face{font-family:"McAfeePoppins";src:url("../../../fonts/Poppins-BlackItalic.ttf") format("truetype");font-weight:900;font-style:italic}*{border:0;box-sizing:border-box;font:inherit;font-family:"McAfeePoppins",Helvetica,Arial;font-size:100%;margin:0;padding:0;vertical-align:baseline;outline:none}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}html,body{background-color:#f5f6fa;font-family:"McAfeePoppins",Helvetica,Arial;line-height:1;height:100%;width:100%}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:after,blockquote:before,q:after,q:before{content:"";content:none}table{border-collapse:collapse;border-spacing:0}b{font-weight:bold}img{display:block}.dls__container{align-items:center;display:flex;margin:0 auto;margin-top:50px;position:relative}.dls__popup__expanded{align-items:center;overflow:hidden;border-radius:100px;cursor:pointer;display:flex;left:0;padding:15px;position:absolute;height:95px;width:383px;background-color:#fff;transition:all .3s ease-in-out}.dls__popup__expanded .dls__icon{height:65px;width:73px}.content{margin-left:12px}.content .content__images{display:flex;align-items:center;width:250px}.content .content__images .seperator__line{margin-left:5px;margin-right:10px}.content .content__images #dls_close_icon{cursor:pointer;margin-left:auto;margin-right:0px}.content p{font-family:"McAfeePoppins",Helvetica,Arial;font-weight:"400";font-size:14px;line-height:20px;margin-top:8px;color:#4258ff;width:250px;cursor:pointer}.shield{overflow:hidden;box-shadow:0px 2px 4px 0px rgba(33,41,52,.12),0px -1px 2px 0px rgba(0,0,0,.08);align-items:center;border-radius:100px;bottom:0;display:flex;height:95px;justify-content:center;position:absolute;right:0;width:383px;transition:all .3s ease-in-out}.shield__circle{display:flex;justify-content:center;align-items:center;width:55px;height:55px;background-color:#c01818;transition:all .6s ease-in-out .2s;z-index:1;opacity:0}
-
-/*# sourceMappingURL=../sourceMap/chrome/css/download_scan_popup.css.map*/</style><div class="dls__container">
-  <div class="shield" style="background: rgb(192, 24, 24);">
-    <div class="shield__circle" style="opacity: 1;">
-      <img src="chrome-extension://fheoggkfdfchfphceeifdbepaooicaho/images/download_scan/mcafee_logo_white.svg?secret=j0yfya" x-mcsrc="" id="dls_ballon_icon" x-mcsrcparsed="true">
-    </div>
-    <div class="dls__popup__expanded" style="opacity: 0;">
-      <img src="chrome-extension://fheoggkfdfchfphceeifdbepaooicaho/images/download_scan/download_scan_icon.svg?secret=j0yfya" x-mcsrc="" class="dls__icon" x-mcsrcparsed="true">
-      <div class="content">
-        <div class="content__images">
-          <img src="chrome-extension://fheoggkfdfchfphceeifdbepaooicaho/images/download_scan/mcafee_logo_red.svg?secret=j0yfya" x-mcsrc="" id="dls_mcafee_logo" x-mcsrcparsed="true">
-          <img src="chrome-extension://fheoggkfdfchfphceeifdbepaooicaho/images/download_scan/seperator_line.svg?secret=j0yfya" x-mcsrc="" class="seperator__line" x-mcsrcparsed="true">
-          <img src="chrome-extension://fheoggkfdfchfphceeifdbepaooicaho/images/download_scan/webadvisor.svg?secret=j0yfya" x-mcsrc="" x-mcsrcparsed="true">
-          <img src="chrome-extension://fheoggkfdfchfphceeifdbepaooicaho/images/download_scan/close-outline.svg?secret=j0yfya" x-mcsrc="" id="dls_close_icon" x-mcsrcparsed="true">
-        </div>
-        <p id="download_scan_popup_expanded_descriptions">Your download's being scanned. We'll let you know if there's an issue.</p>
-      </div>
-    </div>
-  </div>
-</div><style>/*!
- * 
- *     MCAFEE RESTRICTED CONFIDENTIAL
- *     Copyright (c) 2026 McAfee, LLC
- *
- *     The source code contained or described herein and all documents related
- *     to the source code ("Material") are owned by McAfee or its
- *     suppliers or licensors. Title to the Material remains with McAfee
- *     or its suppliers and licensors. The Material contains trade
- *     secrets and proprietary and confidential information of McAfee or its
- *     suppliers and licensors. The Material is protected by worldwide copyright
- *     and trade secret laws and treaty provisions. No part of the Material may
- *     be used, copied, reproduced, modified, published, uploaded, posted,
- *     transmitted, distributed, or disclosed in any way without McAfee's prior
- *     express written permission.
- *
- *     No license under any patent, copyright, trade secret or other intellectual
- *     property right is granted to or conferred upon you by disclosure or
- *     delivery of the Materials, either expressly, by implication, inducement,
- *     estoppel or otherwise. Any license under such intellectual property rights
- *     must be expressed and approved by McAfee in writing.
- *
- */
-.mc-interactive-balloon{position:absolute;right:-50px;bottom:8px;box-shadow:rgba(0,0,0,.12) 0px 0px 10px;height:40px;width:40px;background:#1671ee;border-radius:20px;display:flex;justify-content:center;align-items:center}
-
-/*# sourceMappingURL=../sourceMap/chrome/css/interactive_balloon.css.map*/</style></template></div></body></html>
+</body></html>

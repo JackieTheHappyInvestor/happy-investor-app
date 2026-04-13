@@ -12,6 +12,19 @@ export default async function handler(req, res) {
     attorney: { deny: ['real_estate_agency'] }
   };
 
+  const FLATFEE_LISTINGS = [
+    { name: 'Houzeo', formatted_address: 'All 50 states · From $249 + 0.5% at closing · houzeo.com', rating: 4.8 },
+    { name: 'Unreal Estate', formatted_address: '49 states · $0 upfront + 0.5% at closing · unrealestate.com', rating: 4.2 },
+    { name: 'List With Freedom', formatted_address: '47 states · From $89 + 0.5% at closing · listwithfreedom.com', rating: 3.2 },
+    { name: 'Fizber', formatted_address: 'All 50 states · From $270 flat fee · fizber.com', rating: 4.8 },
+    { name: 'Beycome', formatted_address: '14 states · $99 flat, no closing fees · beycome.com', rating: 4.4 },
+    { name: 'Homecoin', formatted_address: '22+ states · $95–$149 flat, $0 at closing · homecoin.com', rating: 4.4 }
+  ];
+
+  if (category === 'flatfee') {
+    return res.status(200).json({ results: FLATFEE_LISTINGS });
+  }
+
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
 
   try {

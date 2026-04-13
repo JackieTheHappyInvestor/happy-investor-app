@@ -447,6 +447,7 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
         <button class="f-chip" onclick="filt(&#39;title&#39;,this)">Title</button>
         <button class="f-chip" onclick="filt(&#39;contractor&#39;,this)">Contractors</button>
         <button class="f-chip" onclick="filt(&#39;accountant&#39;,this)">Accountants</button>
+        <button class="f-chip" onclick="filt(&#39;attorney&#39;,this)">Attorneys</button>
       </div>
       <div class="t-load" id="team-load">
         <div class="spin" style="border-top-color:#29D0F5"></div>
@@ -636,10 +637,10 @@ var SUPABASE_KEY='sb_publishable_TdiZtjzvQGcTfZb18-b0VA_2obGwmkB';
 var sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 var currentUser=null,currentProfile=null,isSubscribed=false;
 var arv=0,vendors=[],cf='all',knowOpen=false,showAll=false;
-var vt={realtor:'investor friendly real estate agent',lender:'hard money lender for real estate investors',dscr:'DSCR mortgage lender non-QM',title:'title insurance company real estate closing',contractor:'licensed general contractor home renovation',accountant:'CPA accountant real estate investor taxes'};
-var vi={realtor:'🏡',lender:'💰',dscr:'🏦',title:'📋',contractor:'🔨',accountant:'🧮'};
-var vl={realtor:'Realtor',lender:'Hard Money Lender',dscr:'DSCR Lender',title:'Title Company',contractor:'Contractor',accountant:'Accountant'};
-var vc={realtor:'#fff0f5',lender:'#fffcf0',dscr:'#f0fbff',title:'#f5f0ff',contractor:'#f0fff5',accountant:'#fff8f0'};
+var vt={realtor:'investor friendly real estate agent',lender:'hard money lender for real estate investors',dscr:'DSCR mortgage lender non-QM',title:'title insurance company real estate closing',contractor:'licensed general contractor home renovation',accountant:'CPA accountant real estate investor taxes',attorney:'real estate attorney closing contracts'};
+var vi={realtor:'🏡',lender:'💰',dscr:'🏦',title:'📋',contractor:'🔨',accountant:'🧮',attorney:'⚖️'};
+var vl={realtor:'Realtor',lender:'Hard Money Lender',dscr:'DSCR Lender',title:'Title Company',contractor:'Contractor',accountant:'Accountant',attorney:'Real Estate Attorney'};
+var vc={realtor:'#fff0f5',lender:'#fffcf0',dscr:'#f0fbff',title:'#f5f0ff',contractor:'#f0fff5',accountant:'#fff8f0',attorney:'#f5f5ff'};
 
 function go(n){
   var protectedScreens=['deal','team','history'];

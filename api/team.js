@@ -8,7 +8,8 @@ export default async function handler(req, res) {
     dscr: { deny: ['real_estate_agency'] },
     title: { deny: ['real_estate_agency'] },
     contractor: { deny: ['real_estate_agency'] },
-    accountant: { deny: ['real_estate_agency'] }
+    accountant: { deny: ['real_estate_agency'] },
+    attorney: { deny: ['real_estate_agency'] }
   };
 
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;

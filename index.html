@@ -787,7 +787,7 @@ function findTeam(){
   showAll=false;
   var types=Object.keys(vt),done=0;
   types.forEach(function(type){
-    fetch('/api/team?zip='+zip+'&type='+encodeURIComponent(vt[type]))
+    fetch('/api/team?zip='+zip+'&category='+encodeURIComponent(type)+'&type='+encodeURIComponent(vt[type]))
     .then(function(r){return r.json();})
     .then(function(d){(d.results||[]).forEach(function(p){vendors.push({name:p.name,address:p.formatted_address,rating:p.rating,type:type});});})
     .catch(function(){})

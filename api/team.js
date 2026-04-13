@@ -1,7 +1,14 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  const { zip, type } = req.query;
+  const { zip, type, category } = req.query;
   if (!zip) return res.status(400).json({ error: 'Zip required' });
+
+  const TYPE_RULES = {
+    lender: { deny: ['real_estate_agency'] },
+    dscr: { deny: ['real_estate_agency'] },
+    title: { deny: ['real_estate_agency'] },
+    contractor: { deny: ['real_estate_agency'] }
+  };
 
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
 
@@ -60,13 +67,24 @@ export default async function handler(req, res) {
         formatted_address: p.formattedAddress || '',
         rating: p.rating || null,
         user_ratings_total: p.userRatingCount || 0,
-        _state: stateMatch ? stateMatch.shortText : null
+        _state: stateMatch ? stateMatch.shortText : null,
+        _types: p.types || []
       };
     });
 
     if (stateShort) {
       results = results.filter(function (r) {
         return !r._state || r._state === stateShort;
+      });
+    }
+
+    const rules = TYPE_RULES[category];
+    if (rules && rules.deny && rules.deny.length) {
+      results = results.filter(function (r) {
+        for (let i = 0; i < rules.deny.length; i++) {
+          if (r._types.indexOf(rules.deny[i]) !== -1) return false;
+        }
+        return true;
       });
     }
 

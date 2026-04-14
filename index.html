@@ -1074,6 +1074,7 @@ async function kickSession(){
 
 async function signOut(){
   await sb.auth.signOut();
+  try{localStorage.removeItem('happy-investor-session-id');}catch(e){}
   currentUser=null;currentProfile=null;isSubscribed=false;
   var lb=document.getElementById('login-btn');if(lb){lb.disabled=false;lb.textContent='Log in';}
   var sb2=document.getElementById('signup-btn');if(sb2){sb2.disabled=false;sb2.textContent='Create account';}

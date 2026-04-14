@@ -196,6 +196,19 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 .comp-addr{flex:1;color:#1A1A1A;font-weight:500;line-height:1.4}
 .comp-dist{font-size:10px;color:#aaa;margin-top:2px}
 .comp-price{color:#FF1A8C;font-weight:700;font-size:13px;white-space:nowrap}.site-callout{text-align:center;font-size:12px;color:#6B6B6B;font-weight:300;margin-top:24px;padding:16px;line-height:1.6}.site-callout a{color:#FF1A8C;font-weight:600;text-decoration:none}
+.terms-wrap{max-width:680px;margin:0 auto;padding:24px 20px 40px}
+.terms-hero{text-align:center;margin-bottom:24px}
+.terms-hero .ph-eyebrow{font-size:12px;font-weight:700;color:#FF1A8C;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px}
+.terms-hero h2{font-size:26px;font-weight:800;color:#1A1A1A;margin-bottom:8px;line-height:1.2}
+.terms-hero p{font-size:13px;color:#6B6B6B;font-weight:300}
+.terms-card{background:#fff;border-radius:18px;padding:28px 26px;box-shadow:0 10px 30px rgba(0,0,0,0.06);margin-bottom:18px}
+.terms-card h3{font-size:14px;font-weight:700;color:#1A1A1A;margin:0 0 14px;text-transform:uppercase;letter-spacing:0.04em}
+.terms-card ul{list-style:none;padding:0;margin:0}
+.terms-card li{font-size:14px;line-height:1.6;color:#1A1A1A;padding:12px 0;border-top:1px solid #f5f5f5;display:flex;align-items:flex-start;gap:12px;font-weight:300}
+.terms-card li:first-child{border-top:none;padding-top:0}
+.terms-card li::before{content:"•";color:#FF1A8C;font-weight:800;font-size:18px;line-height:1;flex-shrink:0;margin-top:2px}
+.terms-back{display:block;width:100%;background:#1A1A1A;color:#fff;border:none;border-radius:14px;padding:16px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;margin-top:8px}
+.terms-back:active{transform:scale(0.99)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
@@ -694,6 +707,29 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
     <div class="price-footnote">
       Already have an account? <a href="#" onclick="go('auth');return false">Log in</a>
     </div>
+  </div>
+</div>
+
+<div id="s-terms" class="screen">
+  <div class="terms-wrap">
+    <div class="terms-hero">
+      <div class="ph-eyebrow">Terms & Conditions</div>
+      <h2>Please read before creating your account</h2>
+      <p>By using this app you agree to the following terms.</p>
+    </div>
+    <div class="terms-card">
+      <h3>Important notices</h3>
+      <ul>
+        <li>This app is for educational and informational purposes only.</li>
+        <li>Nothing in this app constitutes legal, financial, tax, or investment advice.</li>
+        <li>Jackie The Happy Investor LLC, The Happy Investor LLC, and their affiliates are not responsible for any financial decisions made based on estimates or information provided in the app.</li>
+        <li>Results and estimates are not guaranteed and will vary based on market conditions, property condition, and other factors.</li>
+        <li>User assumes all risk associated with any real estate investment decisions.</li>
+        <li>By using this app, you agree not to share your login credentials with any other person or entity.</li>
+        <li>One account = one user only.</li>
+      </ul>
+    </div>
+    <button class="terms-back" onclick="history.length>1?history.back():go('auth')">Back</button>
   </div>
 </div>
 

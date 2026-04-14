@@ -992,9 +992,13 @@ async function signUp(){
   hideErr('signup-err');
   var fn=document.getElementById('signup-firstname').value.trim();
   var em=document.getElementById('signup-email').value.trim();
+  var st=document.getElementById('signup-state').value;
   var pw=document.getElementById('signup-password').value;
+  var tc=document.getElementById('signup-tc').checked;
   if(!fn||!em||!pw){showErr('signup-err','Please fill in all fields');return;}
+  if(!st){showErr('signup-err','Please select your state');return;}
   if(pw.length<6){showErr('signup-err','Password must be at least 6 characters');return;}
+  if(!tc){showErr('signup-err','Please agree to the Terms & Conditions to continue');return;}
   var btn=document.getElementById('signup-btn');
   btn.disabled=true;btn.textContent='Creating account...';
   try{
@@ -1005,6 +1009,9 @@ if(r.error){
       else if(msg.toLowerCase().indexOf('password')>-1)msg='Password must be at least 6 characters.';
       else if(msg.toLowerCase().indexOf('email')>-1)msg='Please enter a valid email address.';
       showErr('signup-err',msg);btn.disabled=false;btn.textContent='Create account';return;
+    }
+    if(r.data&&r.data.user){
+      try{await sb.from('profiles').update({state:st,tc_accepted_at:new Date().toISOString()}).eq('id',r.data.user.id);}catch(e){console.error('profile update error',e);}
     }
     await loadUser();
     btn.disabled=false;btn.textContent='Create account';

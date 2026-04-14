@@ -209,6 +209,12 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 .terms-card li::before{content:"•";color:#FF1A8C;font-weight:800;font-size:18px;line-height:1;flex-shrink:0;margin-top:2px}
 .terms-back{display:block;width:100%;background:#1A1A1A;color:#fff;border:none;border-radius:14px;padding:16px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;margin-top:8px}
 .terms-back:active{transform:scale(0.99)}
+.session-ended-wrap{max-width:480px;margin:0 auto;padding:60px 24px 40px;text-align:center}
+.session-ended-icon{width:72px;height:72px;border-radius:50%;background:#fff0f5;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px}
+.session-ended-wrap h2{font-size:24px;font-weight:800;color:#1A1A1A;margin-bottom:12px;line-height:1.25}
+.session-ended-wrap p{font-size:14px;color:#6B6B6B;font-weight:300;line-height:1.6;margin-bottom:24px}
+.session-ended-btn{display:block;width:100%;background:#FF1A8C;color:#fff;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 6px 20px rgba(255,26,140,0.3)}
+.session-ended-btn:active{transform:scale(0.99)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
@@ -733,6 +739,15 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
   </div>
 </div>
 
+<div id="s-session-ended" class="screen">
+  <div class="session-ended-wrap">
+    <div class="session-ended-icon">🔒</div>
+    <h2>You were signed out</h2>
+    <p>Your account was just accessed from another device. For your security, only one device can be signed in at a time. If this was not you, sign back in and change your password right away.</p>
+    <button class="session-ended-btn" onclick="go('auth')">Sign back in</button>
+  </div>
+</div>
+
 <script>
 var SUPABASE_URL='https://bpvxfchfzolbczpvlqpo.supabase.co';
 var SUPABASE_KEY='sb_publishable_TdiZtjzvQGcTfZb18-b0VA_2obGwmkB';
@@ -1033,6 +1048,16 @@ async function signIn(){
     btn.disabled=false;btn.textContent='Log in';
     go(isSubscribed?'home':'pricing');
   }catch(e){showErr('login-err','Something went wrong. Please try again.');btn.disabled=false;btn.textContent='Log in';}
+}
+
+async function kickSession(){
+  try{await sb.auth.signOut();}catch(e){}
+  try{localStorage.removeItem('happy-investor-session-id');}catch(e){}
+  currentUser=null;currentProfile=null;isSubscribed=false;
+  var lb=document.getElementById('login-btn');if(lb){lb.disabled=false;lb.textContent='Log in';}
+  var sb2=document.getElementById('signup-btn');if(sb2){sb2.disabled=false;sb2.textContent='Create account';}
+  updateUserBar();
+  go('session-ended');
 }
 
 async function signOut(){

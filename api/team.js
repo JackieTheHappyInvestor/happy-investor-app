@@ -12,6 +12,11 @@ export default async function handler(req, res) {
     attorney: { deny: ['real_estate_agency'] }
   };
 
+  const BRAND_DENYLIST = {
+    lender: ['tower loan', 'mariner finance', 'heights finance', 'sun loan', 'sunloan', 'onemain', 'world finance', 'republic finance', 'lendmark', 'security finance', 'regional finance', 'check into cash', 'check n go', 'advance america', 'speedy cash', 'ace cash', 'title max', 'titlemax', 'cash america'],
+    dscr: ['tower loan', 'mariner finance', 'heights finance', 'sun loan', 'sunloan', 'onemain', 'world finance', 'republic finance', 'lendmark', 'security finance', 'regional finance', 'check into cash', 'check n go', 'advance america', 'speedy cash', 'ace cash', 'title max', 'titlemax', 'cash america']
+  };
+
   const FLATFEE_LISTINGS = [
     { name: 'Houzeo', formatted_address: 'All 50 states · From $249 + 0.5% at closing · houzeo.com', rating: 4.8 },
     { name: 'Unreal Estate', formatted_address: '49 states · $0 upfront + 0.5% at closing · unrealestate.com', rating: 4.2 },
@@ -98,6 +103,17 @@ export default async function handler(req, res) {
       results = results.filter(function (r) {
         for (let i = 0; i < rules.deny.length; i++) {
           if (r._types.indexOf(rules.deny[i]) !== -1) return false;
+        }
+        return true;
+      });
+    }
+
+    const brandDeny = BRAND_DENYLIST[category];
+    if (brandDeny && brandDeny.length) {
+      results = results.filter(function (r) {
+        const nameLower = (r.name || '').toLowerCase();
+        for (let i = 0; i < brandDeny.length; i++) {
+          if (nameLower.indexOf(brandDeny[i]) !== -1) return false;
         }
         return true;
       });

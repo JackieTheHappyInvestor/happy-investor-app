@@ -1026,7 +1026,9 @@ if(r.error){
       showErr('signup-err',msg);btn.disabled=false;btn.textContent='Create account';return;
     }
     if(r.data&&r.data.user){
-      try{await sb.from('profiles').update({state:st,tc_accepted_at:new Date().toISOString()}).eq('id',r.data.user.id);}catch(e){console.error('profile update error',e);}
+      var sid=newSessionId();
+      try{await sb.from('profiles').update({state:st,tc_accepted_at:new Date().toISOString(),session_id:sid}).eq('id',r.data.user.id);}catch(e){console.error('profile update error',e);}
+      try{localStorage.setItem('happy-investor-session-id',sid);}catch(e){}
     }
     await loadUser();
     btn.disabled=false;btn.textContent='Create account';
@@ -1044,10 +1046,20 @@ async function signIn(){
   try{
     var r=await sb.auth.signInWithPassword({email:em,password:pw});
     if(r.error){showErr('login-err','Incorrect email or password');btn.disabled=false;btn.textContent='Log in';return;}
+    if(r.data&&r.data.user){
+      var sid=newSessionId();
+      try{await sb.from('profiles').update({session_id:sid}).eq('id',r.data.user.id);}catch(e){console.error('session write error',e);}
+      try{localStorage.setItem('happy-investor-session-id',sid);}catch(e){}
+    }
     await loadUser();
     btn.disabled=false;btn.textContent='Log in';
     go(isSubscribed?'home':'pricing');
   }catch(e){showErr('login-err','Something went wrong. Please try again.');btn.disabled=false;btn.textContent='Log in';}
+}
+
+function newSessionId(){
+  try{if(crypto&&crypto.randomUUID)return crypto.randomUUID();}catch(e){}
+  return 'fb-'+Date.now()+'-'+Math.random().toString(36).slice(2,10)+'-'+Math.random().toString(36).slice(2,10);
 }
 
 async function kickSession(){

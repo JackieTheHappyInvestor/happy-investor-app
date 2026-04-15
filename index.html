@@ -94,6 +94,8 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 .xcheck-badge.differ{background:#fff5e6;color:#b45309}
 .xcheck-divider{height:1px;background:#f0f0f0;margin:2px 0}
 .ppsf-pill{background:#fff0f5;color:#FF1A8C;font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:4px}
+.blended-note{font-size:12px;color:#6B6B6B;margin:0 0 10px;padding:0 4px;font-weight:300;line-height:1.5}
+.blended-note strong{color:#1A1A1A;font-weight:700}
 .step2-card{background:#fff;border-radius:18px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,0.06);margin-bottom:16px}
 .field-lbl{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:#aaa;margin-bottom:8px;margin-top:18px}
 .field-lbl:first-child{margin-top:0}
@@ -852,14 +854,17 @@ function findARV(){
   fetch(url)
   .then(function(r){return r.json();})
   .then(function(d){
-    arv=d.price||d.priceRangeLow||0;
-    if(!arv)throw new Error('No value found. Try a nearby address.');
-    var ai=Math.round(arv*0.7);
+    var rentcastArv=d.price||d.priceRangeLow||0;
+    if(!rentcastArv)throw new Error('No value found. Try a nearby address.');
+    var hasCrossCheck=d.computedPrice&&d.pricePerSqftMedian&&d.comparablesUsed;
+    var bestArv=hasCrossCheck?Math.round((rentcastArv+d.computedPrice)/2):rentcastArv;
+    arv=bestArv;
+    var ai=Math.round(bestArv*0.7);
     var html='<div class="arv-lbl">Based on nearby sold homes, this house could be worth</div>';
-    html+='<div class="arv-value">'+fmt(arv)+'</div>';
+    html+='<div class="arv-value">'+fmt(rentcastArv)+'</div>';
     html+='<div class="arv-note">after repairs — this is your ARV (After Repair Value)</div>';
-    if(d.computedPrice&&d.pricePerSqftMedian&&d.comparablesUsed){
-      var diffPct=Math.abs(d.computedPrice-arv)/arv*100;
+    if(hasCrossCheck){
+      var diffPct=Math.abs(d.computedPrice-rentcastArv)/rentcastArv*100;
       var badgeHtml='';
       if(diffPct<=5){
         badgeHtml='<div class="xcheck-badge agree">✓ Both estimates agree</div>';
@@ -872,6 +877,7 @@ function findARV(){
       html+='<div class="xcheck-row"><div class="xcheck-lbl">Median price per sqft</div><div class="ppsf-pill">$'+d.pricePerSqftMedian+'/sqft</div></div>';
       if(badgeHtml)html+=badgeHtml;
       html+='</div>';
+      html+='<div class="blended-note">Using blended estimate of <strong>'+fmt(bestArv)+'</strong> for your all-in number below</div>';
     }
     html+='<div class="allin-block"><div><div class="allin-left">Your all-in number (ARV x 70%)<small>Stay at or under this number</small></div></div><div class="allin-right">'+fmt(ai)+'</div></div>';
     document.getElementById('arv-display').innerHTML=html;

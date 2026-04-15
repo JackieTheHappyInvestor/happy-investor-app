@@ -201,6 +201,10 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 .pricing-hero p{font-size:14px;color:#6B6B6B;font-weight:300;max-width:380px;margin:0 auto}
 .price-card{background:#FFC247;border-radius:24px;padding:28px 24px;color:#1A1A1A;box-shadow:0 20px 60px rgba(255,194,71,0.35);margin-bottom:16px}
 .price-card .pc-name{font-size:13px;font-weight:700;opacity:0.85;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+.cycle-toggle{display:flex;background:rgba(26,26,26,0.1);border-radius:12px;padding:4px;margin-bottom:18px;position:relative}
+.cycle-btn{flex:1;border:none;background:none;padding:10px 8px;font-size:13px;font-weight:700;color:rgba(26,26,26,0.65);cursor:pointer;font-family:'Inter',sans-serif;border-radius:9px;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.cycle-btn.active{background:#fff;color:#1A1A1A;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.cycle-save-badge{background:#00C853;color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px;letter-spacing:0.04em;text-transform:uppercase}
 .price-card .pc-amount{display:flex;align-items:baseline;gap:6px;margin-bottom:16px}
 .price-card .pc-amount .pc-dollar{font-size:20px;font-weight:700;opacity:0.9}
 .price-card .pc-amount .pc-num{font-size:52px;font-weight:900;line-height:1}
@@ -734,12 +738,16 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
       <h2>Analyze unlimited deals and build your team</h2>
       <p>Get instant ARVs, local comps, and investor-friendly pros — all in one place.</p>
     </div>
-    <div class="price-card">
+    <div class="price-card" id="price-card" data-cycle="monthly">
       <div class="pc-name">Happy Investor Pro</div>
+      <div class="cycle-toggle">
+        <button class="cycle-btn active" id="cycle-monthly" onclick="setCycle('monthly')">Monthly</button>
+        <button class="cycle-btn" id="cycle-annual" onclick="setCycle('annual')">Annual <span class="cycle-save-badge">Save 33%</span></button>
+      </div>
       <div class="pc-amount">
         <span class="pc-dollar">$</span>
-        <span class="pc-num">37</span>
-        <span class="pc-per">/month</span>
+        <span class="pc-num" id="pc-num">37</span>
+        <span class="pc-per" id="pc-per">/month</span>
       </div>
       <ul>
         <li>Unlimited ARV lookups with real comps</li>
@@ -748,7 +756,7 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
         <li>Deal history tracking</li>
         <li>Cancel anytime</li>
       </ul>
-      <button class="pc-btn" onclick="startSubscribe()">Start Now — $37/mo</button>
+      <button class="pc-btn" id="pc-btn" onclick="startSubscribe()">Start Now — $37/mo</button>
     </div>
     <div class="price-footnote">
       Already have an account? <a href="#" onclick="go('auth');return false">Log in</a>

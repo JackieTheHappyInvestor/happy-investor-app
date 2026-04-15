@@ -1,11 +1,23 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  const { address } = req.query;
+  const { address, bedrooms, bathrooms, squareFootage } = req.query;
   if (!address) return res.status(400).json({ error: 'Address required' });
+
+  // Sanitize user-provided property attributes
+  const beds = bedrooms && !isNaN(parseFloat(bedrooms)) ? parseFloat(bedrooms) : null;
+  const baths = bathrooms && !isNaN(parseFloat(bathrooms)) ? parseFloat(bathrooms) : null;
+  const sqft = squareFootage && !isNaN(parseFloat(squareFootage)) ? parseFloat(squareFootage) : null;
+  const hasOverride = beds != null || baths != null || sqft != null;
 
   try {
     // Pull widest parameters in one call, tier the results in code
-    const url = `https://api.rentcast.io/v1/avm/value?address=${encodeURIComponent(address)}&compCount=25&maxRadius=1.5&daysOld=180`;
+    let url = `https://api.rentcast.io/v1/avm/value?address=${encodeURIComponent(address)}&compCount=25&maxRadius=1.5&daysOld=180`;
+    if (hasOverride) {
+      url += `&propertyType=${encodeURIComponent('Single Family')}`;
+      if (beds != null) url += `&bedrooms=${beds}`;
+      if (baths != null) url += `&bathrooms=${baths}`;
+      if (sqft != null) url += `&squareFootage=${sqft}`;
+    }
     const response = await fetch(url, {
       headers: { 'X-Api-Key': process.env.RENTCAST_API_KEY, 'Accept': 'application/json' }
     });

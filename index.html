@@ -89,6 +89,13 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 .field-lbl:first-child{margin-top:0}
 .num-input{width:100%;border:1px solid #E5E5E5;border-radius:12px;padding:16px;font-size:16px;color:#1A1A1A;background:#fff;outline:none;font-family:'Inter',sans-serif;font-weight:300;transition:all 0.2s}
 .num-input:focus{border-color:#FF1A8C;box-shadow:0 0 0 4px rgba(255,26,140,0.08)}
+.prop-details{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.prop-details .pd-field{display:flex;flex-direction:column;gap:4px}
+.prop-details .pd-lbl{font-size:11px;font-weight:600;color:#6B6B6B;text-transform:uppercase;letter-spacing:0.04em;padding-left:2px}
+.prop-details .pd-input{width:100%;border:1px solid #E5E5E5;border-radius:10px;padding:12px 12px;font-size:15px;color:#1A1A1A;background:#fff;outline:none;font-family:'Inter',sans-serif;font-weight:300;transition:all 0.2s;-moz-appearance:textfield}
+.prop-details .pd-input:focus{border-color:#FF1A8C;box-shadow:0 0 0 3px rgba(255,26,140,0.08)}
+.prop-details .pd-input::-webkit-outer-spin-button,.prop-details .pd-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.prop-details-helper{font-size:11px;color:#FF1A8C;margin-bottom:14px;padding-left:2px;font-weight:500}
 .total-row{background:#F8F8F8;border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:18px;border:1px solid #f0f0f0}
 .verdict-block{border-radius:18px;padding:28px;text-align:center;margin-bottom:16px}
 .v-deal{background:#00C853}
@@ -320,6 +327,21 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
             <span class="input-icon">📍</span>
             <input class="addr-input" type="text" id="addr" placeholder="Enter property address (ex: 123 Main St, Dallas TX)">
           </div>
+          <div class="prop-details">
+            <div class="pd-field">
+              <label class="pd-lbl">Beds</label>
+              <input class="pd-input" type="number" id="pd-beds" placeholder="3" min="0" max="20" step="1">
+            </div>
+            <div class="pd-field">
+              <label class="pd-lbl">Baths</label>
+              <input class="pd-input" type="number" id="pd-baths" placeholder="2" min="0" max="20" step="0.5">
+            </div>
+            <div class="pd-field">
+              <label class="pd-lbl">Sq Ft</label>
+              <input class="pd-input" type="number" id="pd-sqft" placeholder="1500" min="0" step="10">
+            </div>
+          </div>
+          <div class="prop-details-helper">💡 Adding these makes your ARV way more accurate</div>
           <div class="helper">We'll pull nearby comps and estimate the after-repair value.</div>
           <button class="arv-btn" id="arv-btn" onclick="findARV()">Get ARV &amp; Analyze Deal</button>
           <div class="loading-area" id="arv-load">

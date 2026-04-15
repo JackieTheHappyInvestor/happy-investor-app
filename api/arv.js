@@ -58,13 +58,41 @@ export default async function handler(req, res) {
 
     compTier.count = finalComps.length;
 
+    // Cross-check: compute our own ARV from median price-per-sqft of the broader tier
+    // This serves as a sanity check on Rentcast's AVM, especially in markets where public records are weak
+    let computedPrice = null;
+    let pricePerSqftMedian = null;
+    let comparablesUsed = 0;
+    const ppsfValues = tierComps
+      .filter(c => c.price > 0 && c.squareFootage > 0)
+      .map(c => c.price / c.squareFootage)
+      .sort((a, b) => a - b);
+    if (ppsfValues.length >= 3) {
+      // Drop the highest 10% and lowest 10% to remove outliers
+      const dropCount = Math.floor(ppsfValues.length * 0.1);
+      const trimmed = ppsfValues.slice(dropCount, ppsfValues.length - dropCount);
+      const mid = Math.floor(trimmed.length / 2);
+      pricePerSqftMedian = trimmed.length % 2 === 0
+        ? (trimmed[mid - 1] + trimmed[mid]) / 2
+        : trimmed[mid];
+      comparablesUsed = trimmed.length;
+      // Use user-provided sqft if available, otherwise fall back to Rentcast's subject property sqft
+      const targetSqft = sqft != null ? sqft : (data.subjectProperty && data.subjectProperty.squareFootage ? data.subjectProperty.squareFootage : null);
+      if (targetSqft) {
+        computedPrice = Math.round(pricePerSqftMedian * targetSqft);
+      }
+    }
+
     return res.status(200).json({
       price: data.price || 0,
       priceRangeLow: data.priceRangeLow,
       priceRangeHigh: data.priceRangeHigh,
       subjectProperty: data.subjectProperty || null,
       comparables: finalComps,
-      compTier
+      compTier,
+      computedPrice,
+      pricePerSqftMedian: pricePerSqftMedian ? Math.round(pricePerSqftMedian) : null,
+      comparablesUsed
     });
   } catch (e) {
     return res.status(500).json({ error: 'Failed to fetch ARV' });

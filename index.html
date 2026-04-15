@@ -826,13 +826,20 @@ function stopLoad(){clearInterval(loadTimer);}
 function findARV(){
   var addr=document.getElementById('addr').value.trim();
   if(!addr){alert('Please enter an address first!');return;}
+  var beds=document.getElementById('pd-beds').value.trim();
+  var baths=document.getElementById('pd-baths').value.trim();
+  var sqft=document.getElementById('pd-sqft').value.trim();
   var btn=document.getElementById('arv-btn');
   btn.classList.add('loading');
   btn.textContent='Looking up address...';
   document.getElementById('arv-load').style.display='block';
   document.getElementById('arv-err').style.display='none';
   startLoad();
-  fetch('/api/arv?address='+encodeURIComponent(addr))
+  var url='/api/arv?address='+encodeURIComponent(addr);
+  if(beds)url+='&bedrooms='+encodeURIComponent(beds);
+  if(baths)url+='&bathrooms='+encodeURIComponent(baths);
+  if(sqft)url+='&squareFootage='+encodeURIComponent(sqft);
+  fetch(url)
   .then(function(r){return r.json();})
   .then(function(d){
     arv=d.price||d.priceRangeLow||0;
@@ -880,6 +887,9 @@ function resetDeal(){
   document.getElementById('step2').classList.add('hidden');
   document.getElementById('step3').classList.add('hidden');
   document.getElementById('addr').value='';
+  var pdb=document.getElementById('pd-beds');if(pdb)pdb.value='';
+  var pdba=document.getElementById('pd-baths');if(pdba)pdba.value='';
+  var pds=document.getElementById('pd-sqft');if(pds)pds.value='';
   document.getElementById('purchase').value='';
   document.getElementById('rehab').value='';
   document.getElementById('arv-display').innerHTML='';

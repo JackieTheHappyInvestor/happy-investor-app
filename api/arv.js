@@ -63,8 +63,9 @@ export default async function handler(req, res) {
     let computedPrice = null;
     let pricePerSqftMedian = null;
     let comparablesUsed = 0;
-    const ppsfValues = tierComps
-      .filter(c => c.price > 0 && c.squareFootage > 0)
+    let avgCompSqft = null;
+    const validComps = tierComps.filter(c => c.price > 0 && c.squareFootage > 0);
+    const ppsfValues = validComps
       .map(c => c.price / c.squareFootage)
       .sort((a, b) => a - b);
     if (ppsfValues.length >= 3) {
@@ -76,8 +77,18 @@ export default async function handler(req, res) {
         ? (trimmed[mid - 1] + trimmed[mid]) / 2
         : trimmed[mid];
       comparablesUsed = trimmed.length;
-      // Use user-provided sqft if available, otherwise fall back to Rentcast's subject property sqft
-      const targetSqft = sqft != null ? sqft : (data.subjectProperty && data.subjectProperty.squareFootage ? data.subjectProperty.squareFootage : null);
+      // Average sqft of comps with valid sqft data (used as a fallback if subject sqft is unknown)
+      const sqftSum = validComps.reduce((acc, c) => acc + c.squareFootage, 0);
+      avgCompSqft = Math.round(sqftSum / validComps.length);
+      // Determine target sqft for our computed price:
+      // 1. User-provided sqft (most accurate)
+      // 2. Rentcast's auto-looked-up subject property sqft
+      // 3. Average sqft of valid comps (proxy for "houses like this in this area")
+      const targetSqft = sqft != null
+        ? sqft
+        : (data.subjectProperty && data.subjectProperty.squareFootage
+            ? data.subjectProperty.squareFootage
+            : avgCompSqft);
       if (targetSqft) {
         computedPrice = Math.round(pricePerSqftMedian * targetSqft);
       }

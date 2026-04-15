@@ -96,6 +96,12 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 .ppsf-pill{background:#fff0f5;color:#FF1A8C;font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:4px}
 .blended-note{font-size:12px;color:#6B6B6B;margin:0 0 10px;padding:0 4px;font-weight:300;line-height:1.5}
 .blended-note strong{color:#1A1A1A;font-weight:700}
+.xcheck-explain-toggle{background:none;border:none;color:#FF1A8C;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;padding:6px 4px 10px;text-align:left;display:block;text-decoration:none}
+.xcheck-explain-toggle:hover{text-decoration:underline}
+.xcheck-explain-panel{background:#fffaf3;border:1px solid #ffe8c2;border-radius:12px;padding:14px 16px;margin:0 0 14px;font-size:12px;color:#5a4a30;line-height:1.6;font-weight:300}
+.xcheck-explain-panel p{margin:0 0 8px}
+.xcheck-explain-panel p:last-child{margin-bottom:0}
+.xcheck-explain-panel strong{color:#1A1A1A;font-weight:700}
 .step2-card{background:#fff;border-radius:18px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,0.06);margin-bottom:16px}
 .field-lbl{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:#aaa;margin-bottom:8px;margin-top:18px}
 .field-lbl:first-child{margin-top:0}
@@ -814,6 +820,12 @@ function toggleKnow(){
   document.getElementById('know-toggle').textContent=knowOpen?'Hide quick calculator':'Already know the ARV? Click here';
 }
 
+function toggleArvExplain(){
+  var panel=document.getElementById('arv-explain');
+  if(!panel)return;
+  panel.classList.toggle('hidden');
+}
+
 function fmt(n){return '$'+Math.round(n).toLocaleString();}
 
 function calcTotal(){
@@ -877,6 +889,8 @@ function findARV(){
       html+='<div class="xcheck-row"><div class="xcheck-lbl">Median price per sqft</div><div class="ppsf-pill">$'+d.pricePerSqftMedian+'/sqft</div></div>';
       if(badgeHtml)html+=badgeHtml;
       html+='</div>';
+      html+='<button class="xcheck-explain-toggle" onclick="toggleArvExplain()">How is this calculated?</button>';
+      html+='<div class="xcheck-explain-panel hidden" id="arv-explain"><p><strong>Two estimates, one combined number.</strong> We pull a value estimate from Rentcast (a property data service that uses recent sales) and we also do our own math by taking the median price per sqft from the comparable sales in your area and multiplying by your home\'s square footage.</p><p><strong>Why both?</strong> Single estimates can be off when local public records are stale or your home is unusual. Comparing two independent calculations gives you a sanity check, and blending them (50/50 average) gives a more accurate number than either alone.</p><p><strong>Want it more accurate?</strong> Add the bed, bath, and sqft of your subject property at the top of the deal analyzer. That overrides any incorrect public records data and gives both estimates a tighter starting point.</p></div>';
       html+='<div class="blended-note">Using blended estimate of <strong>'+fmt(bestArv)+'</strong> for your all-in number below</div>';
     }
     html+='<div class="allin-block"><div><div class="allin-left">Your all-in number (ARV x 70%)<small>Stay at or under this number</small></div></div><div class="allin-right">'+fmt(ai)+'</div></div>';

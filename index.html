@@ -170,6 +170,8 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 .user-bar .ub-name{font-weight:600;color:#1A1A1A}
 .user-bar .ub-btn{background:none;border:none;color:#FF1A8C;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;padding:6px 10px;border-radius:8px}
 .user-bar .ub-btn:hover{background:#fef0f5}.user-bar #ub-login-btn,.user-bar #ub-logout-btn{background:#1A1A1A;color:#FFC247;font-size:14px;font-weight:700;padding:10px 18px;border-radius:10px}.user-bar #ub-login-btn:hover{background:#000}
+.user-bar #ub-manage-btn{background:#fff;color:#1A1A1A;font-size:13px;font-weight:600;padding:10px 14px;border-radius:10px;border:1px solid #E5E5E5;margin-right:6px}
+.user-bar #ub-manage-btn:hover{background:#f5f5f5;border-color:#C8C8C8}
 .user-bar .ub-badge{background:#00C853;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:0.03em}
 .user-bar .ub-badge.inactive{background:#ffeaea;color:#d63e3e}
 .auth-wrap{max-width:440px;margin:0 auto;padding:24px 20px 40px}
@@ -265,6 +267,7 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
   </div>
   <div>
     <button class="ub-btn" id="ub-login-btn" onclick="go('auth')">Sign in</button>
+    <button class="ub-btn" id="ub-manage-btn" style="display:none" onclick="openPortal()">Manage</button>
     <button class="ub-btn" id="ub-logout-btn" style="display:none" onclick="signOut()">Sign out</button>
   </div>
 </div>
@@ -1216,12 +1219,14 @@ function updateUserBar(){
   var user=document.getElementById('ub-user');
   var loginBtn=document.getElementById('ub-login-btn');
   var logoutBtn=document.getElementById('ub-logout-btn');
+  var manageBtn=document.getElementById('ub-manage-btn');
   if(!guest)return;
   if(currentUser){
     guest.style.display='none';
     user.style.display='flex';
     loginBtn.style.display='none';
     logoutBtn.style.display='inline-block';
+    if(manageBtn)manageBtn.style.display=isSubscribed?'inline-block':'none';
     var fn=(currentProfile&&currentProfile.first_name)||currentUser.email.split('@')[0];
     document.getElementById('ub-firstname').textContent=fn;
     document.getElementById('ub-initial').textContent=fn.charAt(0).toUpperCase();
@@ -1233,6 +1238,7 @@ function updateUserBar(){
     user.style.display='none';
     loginBtn.style.display='inline-block';
     logoutBtn.style.display='none';
+    if(manageBtn)manageBtn.style.display='none';
   }
 }
 
@@ -1274,6 +1280,30 @@ async function startSubscribe(){
     var d=await r.json();
     if(!r.ok||!d.url){
       alert(d.error||'Could not start checkout. Please try again.');
+      if(btn){btn.disabled=false;btn.textContent=originalLabel;}
+      return;
+    }
+    window.location.href=d.url;
+  }catch(e){
+    alert('Something went wrong. Please try again.');
+    if(btn){btn.disabled=false;btn.textContent=originalLabel;}
+  }
+}
+
+async function openPortal(){
+  if(!currentUser){go('auth');return;}
+  var btn=document.getElementById('ub-manage-btn');
+  var originalLabel=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='Loading...';}
+  try{
+    var r=await fetch('/api/stripe-portal',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({user_id:currentUser.id})
+    });
+    var d=await r.json();
+    if(!r.ok||!d.url){
+      alert(d.error||'Could not open subscription manager. Please try again.');
       if(btn){btn.disabled=false;btn.textContent=originalLabel;}
       return;
     }

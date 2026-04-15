@@ -1236,12 +1236,74 @@ function updateUserBar(){
   }
 }
 
-function startSubscribe(){
+function setCycle(cycle){
+  if(cycle!=='monthly'&&cycle!=='annual')return;
+  var card=document.getElementById('price-card');
+  if(card)card.setAttribute('data-cycle',cycle);
+  var mb=document.getElementById('cycle-monthly');
+  var ab=document.getElementById('cycle-annual');
+  if(mb)mb.classList.toggle('active',cycle==='monthly');
+  if(ab)ab.classList.toggle('active',cycle==='annual');
+  var num=document.getElementById('pc-num');
+  var per=document.getElementById('pc-per');
+  var btn=document.getElementById('pc-btn');
+  if(cycle==='annual'){
+    if(num)num.textContent='297';
+    if(per)per.textContent='/year';
+    if(btn)btn.textContent='Start Now — $297/yr';
+  }else{
+    if(num)num.textContent='37';
+    if(per)per.textContent='/month';
+    if(btn)btn.textContent='Start Now — $37/mo';
+  }
+}
+
+async function startSubscribe(){
   if(!currentUser){go('auth');return;}
-  alert('Stripe checkout coming soon! This will be live in the next milestone.');
+  var card=document.getElementById('price-card');
+  var cycle=(card&&card.getAttribute('data-cycle'))||'monthly';
+  var btn=document.getElementById('pc-btn');
+  var originalLabel=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='Loading checkout...';}
+  try{
+    var r=await fetch('/api/stripe-checkout',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({plan:cycle,user_id:currentUser.id,email:currentUser.email})
+    });
+    var d=await r.json();
+    if(!r.ok||!d.url){
+      alert(d.error||'Could not start checkout. Please try again.');
+      if(btn){btn.disabled=false;btn.textContent=originalLabel;}
+      return;
+    }
+    window.location.href=d.url;
+  }catch(e){
+    alert('Something went wrong. Please try again.');
+    if(btn){btn.disabled=false;btn.textContent=originalLabel;}
+  }
 }
 
 // Init
+(function(){
+  try{
+    var qp=new URLSearchParams(window.location.search);
+    if(qp.get('checkout')==='success'){
+      setTimeout(async function(){
+        await loadUser();
+        var p=document.getElementById('arv-err');
+        alert('Welcome to Happy Investor Pro! Your subscription is active. Enjoy the full app.');
+        if(window.history&&window.history.replaceState)window.history.replaceState({},'',window.location.pathname);
+        go('home');
+      },300);
+    }else if(qp.get('checkout')==='cancel'){
+      if(window.history&&window.history.replaceState)window.history.replaceState({},'',window.location.pathname);
+    }else if(qp.get('portal')==='return'){
+      setTimeout(async function(){await loadUser();},300);
+      if(window.history&&window.history.replaceState)window.history.replaceState({},'',window.location.pathname);
+    }
+  }catch(e){console.error('init query handling',e);}
+})();
 if(window.location.hash&&window.location.hash.indexOf('type=recovery')>-1){setTimeout(async function(){var newPw=prompt('Enter your new password (at least 6 characters):');if(newPw&&newPw.length>=6){try{var r=await sb.auth.updateUser({password:newPw});if(r.error){alert('Could not update password: '+r.error.message);}else{alert('Password updated! You are now logged in.');window.location.hash='';await loadUser();go('home');}}catch(e){alert('Something went wrong. Please try again.');}}else if(newPw!==null){alert('Password must be at least 6 characters.');}},500);}sb.auth.onAuthStateChange(function(event,session){
   if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'){loadUser();}
   if(event==='SIGNED_OUT'){currentUser=null;currentProfile=null;isSubscribed=false;}

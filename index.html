@@ -84,6 +84,16 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 .allin-left{font-size:12px;font-weight:500;color:#7a5200}
 .allin-left small{display:block;font-size:11px;color:#9a6800;margin-top:3px;font-weight:300}
 .allin-right{font-size:24px;font-weight:800;color:#1A1A1A}
+.xcheck-block{background:#fafafa;border:1px solid #f0f0f0;border-radius:14px;padding:14px 16px;margin:14px 0 14px;display:flex;flex-direction:column;gap:10px}
+.xcheck-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.xcheck-lbl{font-size:11px;color:#6B6B6B;font-weight:600;text-transform:uppercase;letter-spacing:0.04em}
+.xcheck-val{font-size:18px;font-weight:700;color:#1A1A1A}
+.xcheck-sub{font-size:11px;color:#aaa;font-weight:300;margin-top:2px}
+.xcheck-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;align-self:flex-start;margin-top:2px}
+.xcheck-badge.agree{background:#e8f8ec;color:#1c8c3a}
+.xcheck-badge.differ{background:#fff5e6;color:#b45309}
+.xcheck-divider{height:1px;background:#f0f0f0;margin:2px 0}
+.ppsf-pill{background:#fff0f5;color:#FF1A8C;font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:4px}
 .step2-card{background:#fff;border-radius:18px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,0.06);margin-bottom:16px}
 .field-lbl{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.07em;color:#aaa;margin-bottom:8px;margin-top:18px}
 .field-lbl:first-child{margin-top:0}
@@ -845,7 +855,26 @@ function findARV(){
     arv=d.price||d.priceRangeLow||0;
     if(!arv)throw new Error('No value found. Try a nearby address.');
     var ai=Math.round(arv*0.7);
-    document.getElementById('arv-display').innerHTML='<div class="arv-lbl">Based on nearby sold homes, this house could be worth</div><div class="arv-value">'+fmt(arv)+'</div><div class="arv-note">after repairs — this is your ARV (After Repair Value)</div><div class="allin-block"><div><div class="allin-left">Your all-in number (ARV x 70%)<small>Stay at or under this number</small></div></div><div class="allin-right">'+fmt(ai)+'</div></div>';
+    var html='<div class="arv-lbl">Based on nearby sold homes, this house could be worth</div>';
+    html+='<div class="arv-value">'+fmt(arv)+'</div>';
+    html+='<div class="arv-note">after repairs — this is your ARV (After Repair Value)</div>';
+    if(d.computedPrice&&d.pricePerSqftMedian&&d.comparablesUsed){
+      var diffPct=Math.abs(d.computedPrice-arv)/arv*100;
+      var badgeHtml='';
+      if(diffPct<=5){
+        badgeHtml='<div class="xcheck-badge agree">✓ Both estimates agree</div>';
+      }else if(diffPct>=15){
+        badgeHtml='<div class="xcheck-badge differ">⚠ Estimates differ — review the comps below</div>';
+      }
+      html+='<div class="xcheck-block">';
+      html+='<div class="xcheck-row"><div><div class="xcheck-lbl">Cross-check estimate</div><div class="xcheck-sub">Our own math from '+d.comparablesUsed+' comparable sales</div></div><div class="xcheck-val">'+fmt(d.computedPrice)+'</div></div>';
+      html+='<div class="xcheck-divider"></div>';
+      html+='<div class="xcheck-row"><div class="xcheck-lbl">Median price per sqft</div><div class="ppsf-pill">$'+d.pricePerSqftMedian+'/sqft</div></div>';
+      if(badgeHtml)html+=badgeHtml;
+      html+='</div>';
+    }
+    html+='<div class="allin-block"><div><div class="allin-left">Your all-in number (ARV x 70%)<small>Stay at or under this number</small></div></div><div class="allin-right">'+fmt(ai)+'</div></div>';
+    document.getElementById('arv-display').innerHTML=html;
     if(d.comparables&&d.comparables.length){var tier=d.compTier||{};var radiusLabel=tier.radiusMiles===1.5?'1.5 miles':'1 mile';var metaText='Based on '+tier.count+' '+(tier.count===1?'sale':'sales')+' in the last '+tier.daysWindow+' days within '+radiusLabel;var compsHtml='<div class="comps-wrap"><div class="comps-header">Comparable homes</div><div class="comps-meta">'+metaText+'</div>';d.comparables.forEach(function(c){var distText=c.distance<0.1?'<0.1 mi':c.distance.toFixed(2)+' mi';var bedBath=(c.bedrooms!=null&&c.bathrooms!=null)?' &middot; '+c.bedrooms+'bd/'+c.bathrooms+'ba':'';compsHtml+='<div class="comp-row"><div class="comp-addr">'+c.address+'<div class="comp-dist">'+distText+' away &middot; '+(c.daysOld===1?'1 day ago':c.daysOld+' days ago')+bedBath+'</div></div><div class="comp-price">'+fmt(c.price)+'</div></div>';});compsHtml+='</div>';document.getElementById('arv-display').innerHTML+=compsHtml;}document.getElementById('step1').classList.add('hidden');
     document.getElementById('step2').classList.remove('hidden');
     document.getElementById('pip1').className='step-pip done';

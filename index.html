@@ -84,18 +84,14 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 .allin-left{font-size:12px;font-weight:500;color:#7a5200}
 .allin-left small{display:block;font-size:11px;color:#9a6800;margin-top:3px;font-weight:300}
 .allin-right{font-size:24px;font-weight:800;color:#1A1A1A}
-.xcheck-block{background:#fafafa;border:1px solid #f0f0f0;border-radius:14px;padding:14px 16px;margin:14px 0 14px;display:flex;flex-direction:column;gap:10px}
-.xcheck-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.xcheck-lbl{font-size:11px;color:#6B6B6B;font-weight:600;text-transform:uppercase;letter-spacing:0.04em}
-.xcheck-val{font-size:18px;font-weight:700;color:#1A1A1A}
-.xcheck-sub{font-size:11px;color:#aaa;font-weight:300;margin-top:2px}
-.xcheck-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;align-self:flex-start;margin-top:2px}
-.xcheck-badge.agree{background:#e8f8ec;color:#1c8c3a}
-.xcheck-badge.differ{background:#fff5e6;color:#b45309}
-.xcheck-divider{height:1px;background:#f0f0f0;margin:2px 0}
+.xcheck-block{background:#fafafa;border:1px solid #f0f0f0;border-radius:14px;padding:12px 16px;margin:14px 0 8px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.xcheck-src{font-size:12px;color:#6B6B6B;font-weight:300;display:flex;align-items:center;gap:5px}
+.xcheck-src strong{color:#1A1A1A;font-weight:700}
+.xcheck-src-divider{color:#E0E0E0;font-size:14px}
+.confidence-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;font-size:11px;font-weight:700;letter-spacing:0.04em;margin:6px 0 2px}
+.confidence-badge.high{background:#e8f8ec;color:#1c8c3a}
+.confidence-badge.low{background:#fff5e6;color:#b45309}
 .ppsf-pill{background:#fff0f5;color:#FF1A8C;font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:4px}
-.blended-note{font-size:12px;color:#6B6B6B;margin:0 0 10px;padding:0 4px;font-weight:300;line-height:1.5}
-.blended-note strong{color:#1A1A1A;font-weight:700}
 .xcheck-explain-toggle{background:none;border:none;color:#FF1A8C;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;padding:6px 4px 10px;text-align:left;display:block;text-decoration:none}
 .xcheck-explain-toggle:hover{text-decoration:underline}
 .xcheck-explain-panel{background:#fffaf3;border:1px solid #ffe8c2;border-radius:12px;padding:14px 16px;margin:0 0 14px;font-size:12px;color:#5a4a30;line-height:1.6;font-weight:300}
@@ -883,26 +879,30 @@ function findARV(){
     var bestArv=hasCrossCheck?Math.round((rentcastArv+d.computedPrice)/2):rentcastArv;
     arv=bestArv;
     var ai=Math.round(bestArv*0.7);
-    var html='<div class="arv-lbl">Based on nearby sold homes, this house could be worth</div>';
-    html+='<div class="arv-value">'+fmt(rentcastArv)+'</div>';
-    html+='<div class="arv-note">after repairs — this is your ARV (After Repair Value)</div>';
+    var html='';
     if(hasCrossCheck){
       var diffPct=Math.abs(d.computedPrice-rentcastArv)/rentcastArv*100;
-      var badgeHtml='';
+      html+='<div class="arv-lbl">Estimated after-repair value</div>';
+      html+='<div class="arv-value">'+fmt(bestArv)+'</div>';
+      html+='<div class="arv-note">Blended from two independent methods for higher accuracy</div>';
       if(diffPct<=5){
-        badgeHtml='<div class="xcheck-badge agree">✓ Both estimates agree</div>';
+        html+='<div class="confidence-badge high">✓ High confidence — both methods agree</div>';
       }else if(diffPct>=15){
-        badgeHtml='<div class="xcheck-badge differ">⚠ Estimates differ — review the comps below</div>';
+        html+='<div class="confidence-badge low">⚠ Estimates differ — review comps below</div>';
       }
       html+='<div class="xcheck-block">';
-      html+='<div class="xcheck-row"><div><div class="xcheck-lbl">Cross-check estimate</div><div class="xcheck-sub">Our own math from '+d.comparablesUsed+' comparable sales</div></div><div class="xcheck-val">'+fmt(d.computedPrice)+'</div></div>';
-      html+='<div class="xcheck-divider"></div>';
-      html+='<div class="xcheck-row"><div class="xcheck-lbl">Median price per sqft</div><div class="ppsf-pill">$'+d.pricePerSqftMedian+'/sqft</div></div>';
-      if(badgeHtml)html+=badgeHtml;
+      html+='<div class="xcheck-src">Public data: <strong>'+fmt(rentcastArv)+'</strong></div>';
+      html+='<div class="xcheck-src-divider">|</div>';
+      html+='<div class="xcheck-src">Comp math: <strong>'+fmt(d.computedPrice)+'</strong></div>';
+      html+='<div class="xcheck-src-divider">|</div>';
+      html+='<div class="ppsf-pill">$'+d.pricePerSqftMedian+'/sqft</div>';
       html+='</div>';
       html+='<button class="xcheck-explain-toggle" onclick="toggleArvExplain()">How is this calculated?</button>';
       html+='<div class="xcheck-explain-panel hidden" id="arv-explain"><p><strong>Two estimates, one combined number.</strong> We pull a value estimate from Rentcast (a property data service that uses recent sales) and we also do our own math by taking the median price per sqft from the comparable sales in your area and multiplying by your home\'s square footage.</p><p><strong>Why both?</strong> Single estimates can be off when local public records are stale or your home is unusual. Comparing two independent calculations gives you a sanity check, and blending them (50/50 average) gives a more accurate number than either alone.</p><p><strong>Want it more accurate?</strong> Add the bed, bath, and sqft of your subject property at the top of the deal analyzer. That overrides any incorrect public records data and gives both estimates a tighter starting point.</p></div>';
-      html+='<div class="blended-note">Using blended estimate of <strong>'+fmt(bestArv)+'</strong> for your all-in number below</div>';
+    }else{
+      html+='<div class="arv-lbl">Based on nearby sold homes, this house could be worth</div>';
+      html+='<div class="arv-value">'+fmt(rentcastArv)+'</div>';
+      html+='<div class="arv-note">after repairs — this is your ARV (After Repair Value)</div>';
     }
     html+='<div class="allin-block"><div><div class="allin-left">Your all-in number (ARV x 70%)<small>Stay at or under this number</small></div></div><div class="allin-right">'+fmt(ai)+'</div></div>';
     document.getElementById('arv-display').innerHTML=html;

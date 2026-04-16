@@ -192,26 +192,28 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 .tc-row label{cursor:pointer;font-weight:400}
 .tc-row a{color:#FF1A8C;font-weight:600;text-decoration:none}
 .tc-row a:hover{text-decoration:underline}
-.pricing-wrap{max-width:500px;margin:0 auto;padding:24px 20px 40px}
+.pricing-wrap{max-width:680px;margin:0 auto;padding:24px 20px 40px}
 .pricing-hero{text-align:center;margin-bottom:20px}
 .pricing-hero .ph-eyebrow{font-size:12px;font-weight:700;color:#FF1A8C;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px}
 .pricing-hero h2{font-size:26px;font-weight:800;color:#1A1A1A;margin-bottom:10px;line-height:1.2}
 .pricing-hero p{font-size:14px;color:#6B6B6B;font-weight:300;max-width:380px;margin:0 auto}
-.price-card{background:#FFC247;border-radius:24px;padding:28px 24px;color:#1A1A1A;box-shadow:0 20px 60px rgba(255,194,71,0.35);margin-bottom:16px}
+.pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+@media(max-width:560px){.pricing-grid{grid-template-columns:1fr}}
+.price-card{background:#fff;border:2px solid #E5E5E5;border-radius:24px;padding:24px 20px;color:#1A1A1A;position:relative}
+.price-card.featured{background:#FFC247;border-color:#FFC247;box-shadow:0 20px 60px rgba(255,194,71,0.35)}
 .price-card .pc-name{font-size:13px;font-weight:700;opacity:0.85;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
-.cycle-toggle{display:flex;background:rgba(26,26,26,0.1);border-radius:12px;padding:4px;margin-bottom:18px;position:relative}
-.cycle-btn{flex:1;border:none;background:none;padding:10px 8px;font-size:13px;font-weight:700;color:rgba(26,26,26,0.65);cursor:pointer;font-family:'Inter',sans-serif;border-radius:9px;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px}
-.cycle-btn.active{background:#fff;color:#1A1A1A;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
-.cycle-save-badge{background:#00C853;color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:6px;letter-spacing:0.04em;text-transform:uppercase}
-.price-card .pc-amount{display:flex;align-items:baseline;gap:6px;margin-bottom:16px}
+.pc-popular{position:absolute;top:-12px;right:20px;background:#00C853;color:#fff;font-size:10px;font-weight:800;padding:4px 12px;border-radius:8px;text-transform:uppercase;letter-spacing:0.04em}
+.price-card .pc-amount{display:flex;align-items:baseline;gap:6px;margin-bottom:4px}
 .price-card .pc-amount .pc-dollar{font-size:20px;font-weight:700;opacity:0.9}
-.price-card .pc-amount .pc-num{font-size:52px;font-weight:900;line-height:1}
+.price-card .pc-amount .pc-num{font-size:44px;font-weight:900;line-height:1}
 .price-card .pc-amount .pc-per{font-size:14px;opacity:0.85;font-weight:400}
-.price-card ul{list-style:none;padding:0;margin:0 0 22px}
-.price-card li{font-size:14px;padding:8px 0;display:flex;align-items:center;gap:10px;font-weight:300}
-.price-card li::before{content:"✓";font-weight:800;color:#FFC247;background:#1A1A1A;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
-.price-card .pc-btn{width:100%;background:#1A1A1A;color:#FFC247;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 6px 16px rgba(0,0,0,0.1)}
+.pc-savings{font-size:12px;font-weight:700;color:#1c8c3a;margin-bottom:14px}
+.price-card ul{list-style:none;padding:0;margin:0 0 18px}
+.price-card li{font-size:13px;padding:6px 0;display:flex;align-items:center;gap:8px;font-weight:300}
+.price-card li::before{content:"✓";font-weight:800;color:#FFC247;background:#1A1A1A;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+.price-card .pc-btn{width:100%;background:#1A1A1A;color:#FFC247;border:none;border-radius:14px;padding:14px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 6px 16px rgba(0,0,0,0.1)}
 .price-card .pc-btn:active{transform:scale(0.98)}
+.price-card.featured .pc-btn{background:#1A1A1A;color:#FFC247}
 .price-footnote{text-align:center;font-size:12px;color:#6B6B6B;font-weight:300}
 .price-footnote a{color:#FF1A8C;font-weight:600;text-decoration:none}
 .paywall-msg{background:#fffbef;border:2px solid #FFC247;border-radius:16px;padding:16px 18px;margin-bottom:16px;font-size:13px;color:#1A1A1A;font-weight:500;text-align:center}
@@ -737,25 +739,41 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
       <h2>Analyze unlimited deals and build your team</h2>
       <p>Get instant ARVs, local comps, and investor-friendly pros — all in one place.</p>
     </div>
-    <div class="price-card" id="price-card" data-cycle="monthly">
-      <div class="pc-name">Happy Investor Pro</div>
-      <div class="cycle-toggle">
-        <button class="cycle-btn active" id="cycle-monthly" onclick="setCycle('monthly')">Monthly</button>
-        <button class="cycle-btn" id="cycle-annual" onclick="setCycle('annual')">Annual <span class="cycle-save-badge">Save 33%</span></button>
+    <div class="pricing-grid">
+      <div class="price-card" id="price-card-monthly">
+        <div class="pc-name">Monthly</div>
+        <div class="pc-amount">
+          <span class="pc-dollar">$</span>
+          <span class="pc-num">37</span>
+          <span class="pc-per">/month</span>
+        </div>
+        <ul>
+          <li>Unlimited ARV lookups with real comps</li>
+          <li>Find vetted realtors, lenders, and contractors</li>
+          <li>What If calculator for renovations</li>
+          <li>Deal history tracking</li>
+          <li>Cancel anytime</li>
+        </ul>
+        <button class="pc-btn" id="pc-btn-monthly" onclick="startSubscribe('monthly')">Start Now — $37/mo</button>
       </div>
-      <div class="pc-amount">
-        <span class="pc-dollar">$</span>
-        <span class="pc-num" id="pc-num">37</span>
-        <span class="pc-per" id="pc-per">/month</span>
+      <div class="price-card featured" id="price-card-annual">
+        <div class="pc-popular">Best Value</div>
+        <div class="pc-name">Annual</div>
+        <div class="pc-amount">
+          <span class="pc-dollar">$</span>
+          <span class="pc-num">297</span>
+          <span class="pc-per">/year</span>
+        </div>
+        <div class="pc-savings">Save $147 vs monthly ($24.75/mo)</div>
+        <ul>
+          <li>Unlimited ARV lookups with real comps</li>
+          <li>Find vetted realtors, lenders, and contractors</li>
+          <li>What If calculator for renovations</li>
+          <li>Deal history tracking</li>
+          <li>Cancel anytime</li>
+        </ul>
+        <button class="pc-btn" id="pc-btn-annual" onclick="startSubscribe('annual')">Start Now — $297/yr</button>
       </div>
-      <ul>
-        <li>Unlimited ARV lookups with real comps</li>
-        <li>Find vetted realtors, lenders, and contractors</li>
-        <li>What If calculator for renovations</li>
-        <li>Deal history tracking</li>
-        <li>Cancel anytime</li>
-      </ul>
-      <button class="pc-btn" id="pc-btn" onclick="startSubscribe()">Start Now — $37/mo</button>
     </div>
     <div class="price-footnote">
       Already have an account? <a href="#" onclick="go('auth');return false">Log in</a>
@@ -1242,40 +1260,17 @@ function updateUserBar(){
   }
 }
 
-function setCycle(cycle){
-  if(cycle!=='monthly'&&cycle!=='annual')return;
-  var card=document.getElementById('price-card');
-  if(card)card.setAttribute('data-cycle',cycle);
-  var mb=document.getElementById('cycle-monthly');
-  var ab=document.getElementById('cycle-annual');
-  if(mb)mb.classList.toggle('active',cycle==='monthly');
-  if(ab)ab.classList.toggle('active',cycle==='annual');
-  var num=document.getElementById('pc-num');
-  var per=document.getElementById('pc-per');
-  var btn=document.getElementById('pc-btn');
-  if(cycle==='annual'){
-    if(num)num.textContent='297';
-    if(per)per.textContent='/year';
-    if(btn)btn.textContent='Start Now — $297/yr';
-  }else{
-    if(num)num.textContent='37';
-    if(per)per.textContent='/month';
-    if(btn)btn.textContent='Start Now — $37/mo';
-  }
-}
-
-async function startSubscribe(){
+async function startSubscribe(plan){
   if(!currentUser){go('auth');return;}
-  var card=document.getElementById('price-card');
-  var cycle=(card&&card.getAttribute('data-cycle'))||'monthly';
-  var btn=document.getElementById('pc-btn');
+  plan=plan||'monthly';
+  var btn=document.getElementById('pc-btn-'+plan);
   var originalLabel=btn?btn.textContent:'';
   if(btn){btn.disabled=true;btn.textContent='Loading checkout...';}
   try{
     var r=await fetch('/api/stripe-checkout',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({plan:cycle,user_id:currentUser.id,email:currentUser.email})
+      body:JSON.stringify({plan:plan,user_id:currentUser.id,email:currentUser.email})
     });
     var d=await r.json();
     if(!r.ok||!d.url){
@@ -1337,6 +1332,15 @@ async function openPortal(){
 if(window.location.hash&&window.location.hash.indexOf('type=recovery')>-1){setTimeout(async function(){var newPw=prompt('Enter your new password (at least 6 characters):');if(newPw&&newPw.length>=6){try{var r=await sb.auth.updateUser({password:newPw});if(r.error){alert('Could not update password: '+r.error.message);}else{alert('Password updated! You are now logged in.');window.location.hash='';await loadUser();go('home');}}catch(e){alert('Something went wrong. Please try again.');}}else if(newPw!==null){alert('Password must be at least 6 characters.');}},500);}sb.auth.onAuthStateChange(function(event,session){
   if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'){loadUser();}
   if(event==='SIGNED_OUT'){currentUser=null;currentProfile=null;isSubscribed=false;}
+});
+// Reset Start Now buttons if user navigates back from Stripe (bfcache restore)
+window.addEventListener('pageshow',function(e){
+  if(e.persisted){
+    var bm=document.getElementById('pc-btn-monthly');
+    var ba=document.getElementById('pc-btn-annual');
+    if(bm){bm.disabled=false;bm.textContent='Start Now — $37/mo';}
+    if(ba){ba.disabled=false;ba.textContent='Start Now — $297/yr';}
+  }
 });
 loadUser();
 </script>

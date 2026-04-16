@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 
   try {
     // Pull widest parameters in one call, tier the results in code
-    let url = `https://api.rentcast.io/v1/avm/value?address=${encodeURIComponent(address)}&compCount=25&maxRadius=1.5&daysOld=180`;
+    let url = `https://api.rentcast.io/v1/avm/value?address=${encodeURIComponent(address)}&compCount=25&maxRadius=5&daysOld=365`;
     if (hasOverride) {
       url += `&propertyType=${encodeURIComponent('Single Family')}`;
       if (beds != null) url += `&bedrooms=${beds}`;
@@ -43,6 +43,18 @@ export default async function handler(req, res) {
     if (tierComps.length < 3) {
       tierComps = allComps.filter(c => c.distance != null && c.distance <= 1.5 && c.daysOld != null && c.daysOld <= 180);
       compTier = { daysWindow: 180, radiusMiles: 1.5 };
+    }
+
+    // Tier 4: 365 days within 3 miles (rural areas)
+    if (tierComps.length < 3) {
+      tierComps = allComps.filter(c => c.distance != null && c.distance <= 3 && c.daysOld != null && c.daysOld <= 365);
+      compTier = { daysWindow: 365, radiusMiles: 3 };
+    }
+
+    // Tier 5: 365 days within 5 miles (very rural areas)
+    if (tierComps.length < 3) {
+      tierComps = allComps.filter(c => c.distance != null && c.distance <= 5 && c.daysOld != null && c.daysOld <= 365);
+      compTier = { daysWindow: 365, radiusMiles: 5 };
     }
 
     // Rentcast pre-sorts by correlation (similarity) descending, keep that order, cap at 5

@@ -181,6 +181,11 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 .auth-field label{display:block;font-size:12px;font-weight:600;color:#6B6B6B;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.03em}
 .auth-field input,.auth-field select{width:100%;padding:14px 16px;border:2px solid #f0f0f0;border-radius:12px;font-size:15px;font-family:'Inter',sans-serif;background:#fafafa;transition:all 0.2s}
 .auth-field input:focus,.auth-field select:focus{outline:none;border-color:#FF1A8C;background:#fff}
+.auth-field-row{display:flex;gap:10px}
+.auth-field-half{flex:1}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:48px}
+.pw-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#aaa;padding:4px;line-height:1}
 .auth-btn{width:100%;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;background:#FF1A8C;color:#fff;box-shadow:0 6px 20px rgba(255,26,140,0.3);margin-top:6px}
 .auth-btn:active{transform:scale(0.98)}
 .auth-btn[disabled]{opacity:0.6;cursor:not-allowed}
@@ -264,7 +269,7 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
     <span class="ub-badge" id="ub-badge">Free</span>
   </div>
   <div>
-    <button class="ub-btn" id="ub-login-btn" onclick="go('auth')">Sign in</button>
+    <button class="ub-btn" id="ub-login-btn" onclick="go('auth')">Log in / Sign up</button>
     <button class="ub-btn" id="ub-manage-btn" style="display:none" onclick="openPortal()">Manage</button>
     <button class="ub-btn" id="ub-logout-btn" style="display:none" onclick="signOut()">Sign out</button>
   </div>
@@ -623,9 +628,15 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
         <div class="auth-title">Create your account</div>
         <div class="auth-sub">Start analyzing deals like a pro</div>
         <div class="auth-error" id="signup-err"></div>
-        <div class="auth-field">
-          <label>First name</label>
-          <input type="text" id="signup-firstname" placeholder="Jackie">
+        <div class="auth-field-row">
+          <div class="auth-field auth-field-half">
+            <label>First name</label>
+            <input type="text" id="signup-firstname" placeholder="Jackie">
+          </div>
+          <div class="auth-field auth-field-half">
+            <label>Last name</label>
+            <input type="text" id="signup-lastname" placeholder="Smith">
+          </div>
         </div>
         <div class="auth-field">
           <label>Email</label>
@@ -690,7 +701,10 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
         </div>
         <div class="auth-field">
           <label>Password</label>
-          <input type="password" id="signup-password" placeholder="At least 6 characters">
+          <div class="pw-wrap">
+            <input type="password" id="signup-password" placeholder="At least 6 characters">
+            <button type="button" class="pw-toggle" onclick="togglePw('signup-password',this)">👁</button>
+          </div>
         </div>
         <div class="tc-row">
           <input type="checkbox" id="signup-tc">
@@ -709,7 +723,10 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
         </div>
         <div class="auth-field">
           <label>Password</label>
-          <input type="password" id="login-password" placeholder="Your password">
+          <div class="pw-wrap">
+            <input type="password" id="login-password" placeholder="Your password">
+            <button type="button" class="pw-toggle" onclick="togglePw('login-password',this)">👁</button>
+          </div>
         </div>
         <button class="auth-btn" id="login-btn" onclick="signIn()">Log in</button>
         <button class="auth-link" onclick="authTab('reset')">Forgot your password?</button>
@@ -1102,6 +1119,13 @@ function loadMoreTeam(){
 }
 
 // ============= AUTH =============
+function togglePw(id,btn){
+  var inp=document.getElementById(id);
+  if(!inp)return;
+  if(inp.type==='password'){inp.type='text';btn.textContent='🔒';}
+  else{inp.type='password';btn.textContent='👁';}
+}
+
 function authTab(t){
   document.getElementById('auth-signup').style.display=(t==='signup')?'block':'none';
   document.getElementById('auth-login').style.display=(t==='login')?'block':'none';
@@ -1116,18 +1140,19 @@ function hideErr(id){var e=document.getElementById(id);if(e)e.style.display='non
 async function signUp(){
   hideErr('signup-err');
   var fn=document.getElementById('signup-firstname').value.trim();
+  var ln=document.getElementById('signup-lastname').value.trim();
   var em=document.getElementById('signup-email').value.trim();
   var st=document.getElementById('signup-state').value;
   var pw=document.getElementById('signup-password').value;
   var tc=document.getElementById('signup-tc').checked;
-  if(!fn||!em||!pw){showErr('signup-err','Please fill in all fields');return;}
+  if(!fn||!ln||!em||!pw){showErr('signup-err','Please fill in all fields');return;}
   if(!st){showErr('signup-err','Please select your state');return;}
   if(pw.length<6){showErr('signup-err','Password must be at least 6 characters');return;}
   if(!tc){showErr('signup-err','Please agree to the Terms & Conditions to continue');return;}
   var btn=document.getElementById('signup-btn');
   btn.disabled=true;btn.textContent='Creating account...';
   try{
-    var r=await sb.auth.signUp({email:em,password:pw,options:{data:{first_name:fn}}});
+    var r=await sb.auth.signUp({email:em,password:pw,options:{data:{first_name:fn,last_name:ln}}});
 if(r.error){
       var msg=r.error.message||'Something went wrong';
       if(msg.toLowerCase().indexOf('already registered')>-1||msg.toLowerCase().indexOf('already exists')>-1)msg='That email is already registered. Try logging in instead.';

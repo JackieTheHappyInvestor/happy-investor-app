@@ -11,13 +11,13 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 .app-header{background:#fff;padding:16px 5% 16px;text-align:center;border-bottom:1px solid #f0f0f0}
 .app-header img{width:90%;max-width:900px;height:auto;display:block;margin:0 auto}
 .tagline{background:#fff;text-align:center;font-size:12px;font-weight:300;color:#6B6B6B;padding:6px 16px 14px;border-bottom:1px solid #f0f0f0}
-.top-nav{display:flex;padding:14px 16px;gap:10px;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,0.06)}
-.nav-btn{flex:1;border:none;border-radius:14px;padding:18px 8px;font-size:15px;font-weight:300;cursor:pointer;color:#fff;font-family:'Inter',sans-serif;letter-spacing:0.01em;transition:all 0.2s;box-shadow:0 6px 12px rgba(0,0,0,0.2),0 3px 4px rgba(0,0,0,0.15);position:relative;z-index:10}
+.top-nav{display:flex;padding:14px 16px;gap:10px;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,0.04)}
+.nav-btn{flex:1;border:none;border-radius:14px;padding:18px 8px;font-size:14px;font-weight:500;cursor:pointer;color:#fff;font-family:'Inter',sans-serif;letter-spacing:0.01em;transition:all 0.2s;box-shadow:0 4px 12px rgba(0,0,0,0.12);position:relative;z-index:10}
 .nav-btn:active{transform:scale(0.97)}
 .nav-home{background:#FF1A8C}
 .nav-deal{background:#FFC247;color:#1A1A1A}
 .nav-team{background:#29D0F5}
-.nav-btn.active{box-shadow:0 6px 20px rgba(0,0,0,0.2)}
+.nav-btn.active{box-shadow:0 6px 16px rgba(0,0,0,0.15)}
 .nav-history{background:#FF1A8C;color:#fff}
 .nav-history{background:#FF1A8C;color:#fff}
 .screen{display:none}
@@ -25,19 +25,19 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 
 /* HOME */
 .home-wrap{padding:24px 16px;max-width:600px;margin:0 auto}
-.welcome-block{text-align:center;padding:8px 0 24px}
-.welcome-block h2{font-size:26px;font-weight:800;color:#1A1A1A;margin-bottom:10px;letter-spacing:-0.3px}
-.welcome-block p{font-size:14px;color:#6B6B6B;line-height:1.7;font-weight:300}
-.welcome-block p span{color:#FF1A8C;font-weight:500}
-.feature-card{background:#fff;border-radius:18px;padding:20px 18px;margin-bottom:16px;cursor:pointer;display:flex;align-items:center;gap:16px;box-shadow:0 10px 30px rgba(0,0,0,0.06);transition:transform 0.15s}
+.welcome-block{text-align:center;padding:12px 0 28px}
+.welcome-block h2{font-size:28px;font-weight:800;color:#1A1A1A;margin-bottom:10px;letter-spacing:-0.5px}
+.welcome-block p{font-size:14px;color:#6B6B6B;line-height:1.7;font-weight:300;max-width:340px;margin:0 auto}
+.welcome-block p span{color:#FF1A8C;font-weight:600}
+.feature-card{border-radius:18px;padding:20px 18px;margin-bottom:14px;cursor:pointer;display:flex;align-items:center;gap:16px;box-shadow:0 6px 24px rgba(0,0,0,0.08);transition:transform 0.15s}
 .feature-card:active{transform:scale(0.98)}
-.fc-blue{border-left:5px solid #FF1A8C;background:#FFC247}
-.fc-pink{border-left:5px solid #FFC247;background:#29D0F5}
-.fc-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:28px;background:rgba(255,255,255,0.25)}
+.fc-blue{background:linear-gradient(135deg,#FFC247 0%,#FFD470 100%);border:none}
+.fc-pink{background:linear-gradient(135deg,#29D0F5 0%,#5CE1F7 100%);border:none}
+.fc-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:26px;background:rgba(255,255,255,0.3);backdrop-filter:blur(4px)}
 .fc-body{flex:1}
-.fc-title{font-size:15px;font-weight:300;color:#fff;margin-bottom:3px;font-family:'Inter',sans-serif}
-.fc-sub{font-size:12px;color:rgba(255,255,255,0.9);line-height:1.4;font-weight:300;font-family:'Inter',sans-serif}
-.fc-arr{font-size:20px;color:rgba(255,255,255,0.6);font-weight:200}
+.fc-title{font-size:15px;font-weight:600;color:#fff;margin-bottom:4px;font-family:'Inter',sans-serif;text-shadow:0 1px 2px rgba(0,0,0,0.06)}
+.fc-sub{font-size:12px;color:rgba(255,255,255,0.85);line-height:1.5;font-weight:300;font-family:'Inter',sans-serif}
+.fc-arr{font-size:20px;color:rgba(255,255,255,0.5);font-weight:300}
 
 /* DEAL PAGE */
 .deal-wrap{padding:0 0 40px;max-width:600px;margin:0 auto}
@@ -69,7 +69,7 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{font-size:13px;color:#FF1A8C;font-weight:400}
 .err-card{background:#fff0f5;border:1.5px solid #ffccdd;border-radius:12px;padding:14px;font-size:13px;color:#cc0044;margin-top:14px;display:none;text-align:center;font-weight:300}
-.tip-card{background:#fff;border-radius:18px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,0.06);border:1.5px solid #29D0F5;margin-bottom:20px}
+.tip-card{background:#fff;border-radius:18px;padding:24px;box-shadow:0 6px 24px rgba(0,0,0,0.06);border:1.5px solid #f0f0f0;margin-bottom:18px}
 .tip-top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
 .j-avatar{width:48px;height:48px;border-radius:50%;object-fit:cover;object-position:center top;flex-shrink:0}
 .tip-label{font-size:10px;font-weight:600;color:#FF1A8C;letter-spacing:0.1em;text-transform:uppercase}
@@ -171,7 +171,7 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 .user-bar .ub-badge{background:#00C853;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:0.03em}
 .user-bar .ub-badge.inactive{background:#ffeaea;color:#d63e3e}
 .auth-wrap{max-width:440px;margin:0 auto;padding:24px 20px 40px}
-.auth-card{background:#fff;border-radius:20px;padding:28px 24px;box-shadow:0 10px 40px rgba(0,0,0,0.08);margin-top:12px}
+.auth-card{background:#fff;border-radius:20px;padding:28px 24px;box-shadow:0 8px 32px rgba(0,0,0,0.06);margin-top:12px}
 .auth-tabs{display:flex;background:#f5f5f5;border-radius:14px;padding:4px;margin-bottom:20px}
 .auth-tab{flex:1;border:none;background:none;padding:12px;font-size:14px;font-weight:600;color:#6B6B6B;cursor:pointer;border-radius:10px;font-family:'Inter',sans-serif;transition:all 0.2s}
 .auth-tab.active{background:#fff;color:#1A1A1A;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
@@ -313,11 +313,11 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
       </div>
       <div style="background:rgba(255,255,255,0.25);color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:8px;position:absolute;top:12px;right:12px;text-transform:uppercase;letter-spacing:0.04em">Coming Soon</div>
     </div>
-      <div style="background:#FF1A8C;border-left:5px solid #29D0F5;border-radius:18px;padding:20px;margin-bottom:14px;cursor:pointer;display:flex;align-items:center;gap:16px;box-shadow:0 10px 30px rgba(0,0,0,0.06)" onclick="go(&#39;history&#39;)">
-      <div style="width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,0.4);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">📋</div>
+      <div style="background:linear-gradient(135deg,#FF1A8C 0%,#FF5CAD 100%);border-radius:18px;padding:20px;margin-bottom:14px;cursor:pointer;display:flex;align-items:center;gap:16px;box-shadow:0 6px 24px rgba(255,26,140,0.15)" onclick="go(&#39;history&#39;)">
+      <div style="width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,0.3);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">📋</div>
       <div style="flex:1">
-        <div style="font-size:15px;font-weight:300;color:#fff;margin-bottom:3px;font-family:&#39;Inter&#39;,sans-serif">Deal History</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.4;font-weight:300;font-family:&#39;Inter&#39;,sans-serif">See every deal you have analyzed</div>
+        <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:4px;font-family:&#39;Inter&#39;,sans-serif;text-shadow:0 1px 2px rgba(0,0,0,0.06)">Deal History</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.85);line-height:1.5;font-weight:300;font-family:&#39;Inter&#39;,sans-serif">See every deal you have analyzed</div>
       </div>
       <div style="font-size:20px;color:rgba(255,255,255,0.4);font-weight:200">›</div>
     </div>
@@ -331,11 +331,17 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
           <div class="tip-body">Use the Deal Analyzer to check any property instantly. Just enter the address and let the numbers do the talking. No guessing, no stress.</div>
           <div class="tip-note">The best investors don't rush — they run the numbers first.</div>
         </div>
-    <div style="background:#00C853;border-radius:18px;padding:20px;margin-top:4px;border:2px solid #FFC247;text-align:center;cursor:pointer" onclick="go(&#39;affiliate&#39;)">
-      <div style="font-size:22px;margin-bottom:8px">💰</div>
-      <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px">Love the app? Like money? Why not have both!</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.9);margin-bottom:14px;font-weight:300">Share this app and earn $10 for every person who signs up!</div>
-      <div style="background:#FFC247;border-radius:12px;padding:12px;font-size:14px;font-weight:600;color:#1A1A1A">Get My Affiliate Link →</div>
+    <div style="background:linear-gradient(135deg,#00C853 0%,#00BFA5 50%,#00C853 100%);border-radius:18px;padding:24px 20px;margin-top:4px;text-align:center;cursor:pointer;position:relative;overflow:hidden;box-shadow:0 12px 40px rgba(0,200,83,0.3)" onclick="go(&#39;affiliate&#39;)">
+      <div style="position:absolute;top:8px;left:12px;font-size:28px;opacity:0.2;transform:rotate(-15deg)">💲</div>
+      <div style="position:absolute;top:40px;right:16px;font-size:22px;opacity:0.15;transform:rotate(20deg)">💲</div>
+      <div style="position:absolute;bottom:12px;left:30%;font-size:20px;opacity:0.12;transform:rotate(-8deg)">💲</div>
+      <div style="position:absolute;bottom:8px;right:25%;font-size:26px;opacity:0.18;transform:rotate(12deg)">💲</div>
+      <div style="position:relative;z-index:1">
+        <div style="font-size:28px;margin-bottom:10px">💰</div>
+        <div style="font-size:17px;font-weight:800;color:#fff;margin-bottom:6px;letter-spacing:-0.01em">Love the app? Like money? Why not have both!</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.85);margin-bottom:16px;font-weight:300">Share this app and earn $10 for every person who signs up!</div>
+        <div style="background:#FFC247;border-radius:12px;padding:13px;font-size:14px;font-weight:700;color:#1A1A1A;display:inline-block;min-width:220px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">Get My Affiliate Link →</div>
+      </div>
     </div>
   </div>
 </div>

@@ -10,24 +10,38 @@ export default async function handler(req, res) {
   const hasOverride = beds != null || baths != null || sqft != null;
 
   try {
-    // Pull widest parameters in one call, tier the results in code
-    let url = `https://api.rentcast.io/v1/avm/value?address=${encodeURIComponent(address)}&compCount=25&maxRadius=5&daysOld=365`;
+    // Build base URL with optional property attribute overrides
+    let baseParams = `address=${encodeURIComponent(address)}&compCount=25`;
     if (hasOverride) {
-      url += `&propertyType=${encodeURIComponent('Single Family')}`;
-      if (beds != null) url += `&bedrooms=${beds}`;
-      if (baths != null) url += `&bathrooms=${baths}`;
-      if (sqft != null) url += `&squareFootage=${sqft}`;
+      baseParams += `&propertyType=${encodeURIComponent('Single Family')}`;
+      if (beds != null) baseParams += `&bedrooms=${beds}`;
+      if (baths != null) baseParams += `&bathrooms=${baths}`;
+      if (sqft != null) baseParams += `&squareFootage=${sqft}`;
     }
-    const response = await fetch(url, {
-      headers: { 'X-Api-Key': process.env.RENTCAST_API_KEY, 'Accept': 'application/json' }
-    });
+    const apiHeaders = { 'X-Api-Key': process.env.RENTCAST_API_KEY, 'Accept': 'application/json' };
 
+    // Stage 1: narrow search (1.5 miles, 180 days) — preserves accuracy for urban/suburban
+    let url = `https://api.rentcast.io/v1/avm/value?${baseParams}&maxRadius=1.5&daysOld=180`;
+    let response = await fetch(url, { headers: apiHeaders });
     if (!response.ok) {
       return res.status(response.status).json({ error: 'Rentcast API error' });
     }
+    let data = await response.json();
+    let allComps = Array.isArray(data.comparables) ? data.comparables : [];
 
-    const data = await response.json();
-    const allComps = Array.isArray(data.comparables) ? data.comparables : [];
+    // Stage 2: if narrow returned fewer than 3 comps, widen to 5 miles / 365 days (rural fallback)
+    if (allComps.length < 3) {
+      let wideUrl = `https://api.rentcast.io/v1/avm/value?${baseParams}&maxRadius=5&daysOld=365`;
+      let wideResp = await fetch(wideUrl, { headers: apiHeaders });
+      if (wideResp.ok) {
+        let wideData = await wideResp.json();
+        let wideComps = Array.isArray(wideData.comparables) ? wideData.comparables : [];
+        if (wideComps.length > allComps.length) {
+          data = wideData;
+          allComps = wideComps;
+        }
+      }
+    }
 
     // Tier 1: 90 days within 1 mile
     let tierComps = allComps.filter(c => c.distance != null && c.distance <= 1 && c.daysOld != null && c.daysOld <= 90);
@@ -45,13 +59,13 @@ export default async function handler(req, res) {
       compTier = { daysWindow: 180, radiusMiles: 1.5 };
     }
 
-    // Tier 4: 365 days within 3 miles (rural areas)
+    // Tier 4: 365 days within 3 miles (rural areas, only reached via Stage 2)
     if (tierComps.length < 3) {
       tierComps = allComps.filter(c => c.distance != null && c.distance <= 3 && c.daysOld != null && c.daysOld <= 365);
       compTier = { daysWindow: 365, radiusMiles: 3 };
     }
 
-    // Tier 5: 365 days within 5 miles (very rural areas)
+    // Tier 5: 365 days within 5 miles (very rural, only reached via Stage 2)
     if (tierComps.length < 3) {
       tierComps = allComps.filter(c => c.distance != null && c.distance <= 5 && c.daysOld != null && c.daysOld <= 365);
       compTier = { daysWindow: 365, radiusMiles: 5 };

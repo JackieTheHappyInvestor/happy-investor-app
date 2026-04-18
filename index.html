@@ -1069,8 +1069,9 @@ function shareResult(){
   var verdictEl=document.getElementById('verdict-block');
   var isDealText=verdictEl&&verdictEl.innerHTML.indexOf('v-deal')>-1;
   var verdict=isDealText?"IT'S A DEAL!":'WALK AWAY.';
-  var text='I just analyzed '+addr+' using Jackie The Happy Investor app! Verdict: '+verdict+' See the numbers at thehappyinvestor.com — try it yourself!';
-  if(navigator.share){navigator.share({title:'Jackie The Happy Investor',text:text,url:'https://thehappyinvestor.com'});}
+  var appUrl=window.location.origin;
+  var text='I just analyzed '+addr+' using Jackie The Happy Investor app! Verdict: '+verdict+' See the numbers at '+appUrl+' — try it yourself!';
+  if(navigator.share){navigator.share({title:'Jackie The Happy Investor',text:text,url:appUrl});}
   else{navigator.clipboard.writeText(text).then(function(){alert('Deal result copied! Paste it anywhere to share.');});}
 }
 

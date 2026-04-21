@@ -287,9 +287,9 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
   </div>
 </div>
 
-<div class="top-nav" style="display:none">
+<div class="top-nav">
   <button class="nav-btn nav-home active" id="t-home" onclick="go(&#39;home&#39;)">Home</button>
-  <button class="nav-btn nav-deal" id="t-deal" onclick="go(&#39;deal&#39;)">Should I Buy This House?</button>
+  <button class="nav-btn nav-deal" id="t-deal" onclick="go(&#39;deal&#39;)">Analyze a Deal</button>
   <button class="nav-btn nav-team" id="t-team" onclick="go(&#39;team&#39;)">Find My Team</button>
   <button class="nav-btn nav-history" id="t-history" onclick="go(&#39;history&#39;)">Deal History</button>
 </div>
@@ -881,9 +881,6 @@ function go(n){
   document.getElementById('s-'+n).classList.add('active');
   var tb=document.getElementById('t-'+n);
   if(tb)tb.classList.add('active');
-  var nav=document.querySelector('.top-nav');
-  var hideNavScreens=['home','auth','pricing','terms'];
-  if(nav)nav.style.display=(hideNavScreens.indexOf(n)>-1)?'none':'flex';
   if(n==='history')renderHistory();
   window.scrollTo(0,0);
 }

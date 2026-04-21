@@ -29,15 +29,27 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 .welcome-block h2{font-size:28px;font-weight:800;color:#1A1A1A;margin-bottom:10px;letter-spacing:-0.5px}
 .welcome-block p{font-size:14px;color:#6B6B6B;line-height:1.7;font-weight:300;max-width:340px;margin:0 auto}
 .welcome-block p span{color:#FF1A8C;font-weight:600}
-.feature-card{border-radius:18px;padding:20px 18px;margin-bottom:14px;cursor:pointer;display:flex;align-items:center;gap:16px;box-shadow:0 6px 24px rgba(0,0,0,0.08);transition:transform 0.15s}
-.feature-card:active{transform:scale(0.98)}
-.fc-blue{background:linear-gradient(135deg,#FFC247 0%,#FFD470 100%);border:none}
-.fc-pink{background:linear-gradient(135deg,#29D0F5 0%,#5CE1F7 100%);border:none}
-.fc-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:26px;background:rgba(255,255,255,0.3);backdrop-filter:blur(4px)}
-.fc-body{flex:1}
-.fc-title{font-size:15px;font-weight:600;color:#fff;margin-bottom:4px;font-family:'Inter',sans-serif;text-shadow:0 1px 2px rgba(0,0,0,0.06)}
-.fc-sub{font-size:12px;color:rgba(255,255,255,0.85);line-height:1.5;font-weight:300;font-family:'Inter',sans-serif}
-.fc-arr{font-size:20px;color:rgba(255,255,255,0.5);font-weight:300}
+.home-hero{display:flex;align-items:center;gap:20px;background:#fff;border-radius:20px;padding:24px;margin-bottom:16px;box-shadow:0 6px 24px rgba(0,0,0,0.05)}
+@media(max-width:480px){.home-hero{flex-direction:column;text-align:center}}
+.hero-jackie{width:120px;height:120px;border-radius:16px;object-fit:cover;object-position:center top;flex-shrink:0}
+.hero-right{flex:1}
+.hero-title{font-size:22px;font-weight:800;color:#1A1A1A;margin-bottom:6px;letter-spacing:-0.3px}
+.hero-sub{font-size:13px;color:#6B6B6B;margin-bottom:14px;font-weight:300;line-height:1.5}
+.hero-sub strong{color:#FF1A8C;font-weight:700}
+.hero-input-wrap{display:flex;align-items:center;gap:8px;background:#f5f5f5;border:2px solid #f0f0f0;border-radius:12px;padding:12px 14px;cursor:pointer;margin-bottom:12px;transition:border-color 0.2s}
+.hero-input-wrap:hover{border-color:#FF1A8C}
+.hero-pin{font-size:16px}
+.hero-placeholder{font-size:14px;color:#aaa;font-weight:300}
+.hero-btn{width:100%;background:#FF1A8C;color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 6px 20px rgba(255,26,140,0.25);transition:transform 0.15s}
+.hero-btn:active{transform:scale(0.98)}
+.home-card{background:#fff;border-radius:16px;padding:16px 18px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 2px 10px rgba(0,0,0,0.04);border:1px solid #f0f0f0;transition:box-shadow 0.15s}
+.home-card:active{transform:scale(0.98)}
+.hc-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;color:#fff}
+.hc-body{flex:1}
+.hc-title{font-size:14px;font-weight:600;color:#1A1A1A;margin-bottom:2px}
+.hc-sub{font-size:12px;color:#999;font-weight:300;line-height:1.4}
+.hc-arr{font-size:18px;color:#ccc;font-weight:300}
+.hc-badge{background:#7C3AED;color:#fff;font-size:9px;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:0.04em}
 
 /* DEAL PAGE */
 .deal-wrap{padding:0 0 40px;max-width:600px;margin:0 auto}
@@ -285,41 +297,44 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 <!-- HOME -->
 <div id="s-home" class="screen active">
   <div class="home-wrap">
-    <div class="welcome-block">
-      <h2>Welcome!</h2>
-      <p>Get the ARV on any property <span>instantly</span> — no waiting, no realtor needed. Find your team and start flipping.</p>
-    </div>
-    <div class="feature-card fc-blue" onclick="go(&#39;deal&#39;)">
-      <div class="fc-icon">🏠</div>
-      <div class="fc-body">
-        <div class="fc-title">Should I buy this house?</div>
-        <div class="fc-sub">Get the ARV instantly — type any address and we do the math</div>
+    <div class="home-hero">
+      <div class="hero-left">
+        <img src="data:image/jpeg;base64,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" class="hero-jackie" alt="Jackie">
       </div>
-      <div class="fc-arr">›</div>
-    </div>
-    <div class="feature-card fc-pink" onclick="go(&#39;team&#39;)">
-      <div class="fc-icon">🔍</div>
-      <div class="fc-body">
-        <div class="fc-title">Build my team</div>
-        <div class="fc-sub">Find realtors, lenders, title companies and contractors near you</div>
+      <div class="hero-right">
+        <div class="hero-title">Should I buy this house?</div>
+        <div class="hero-sub">Enter an address. Get the <strong>ARV</strong> + my verdict.</div>
+        <div class="hero-input-wrap" onclick="go('deal')">
+          <span class="hero-pin">📍</span>
+          <span class="hero-placeholder">Enter a property address...</span>
+        </div>
+        <button class="hero-btn" onclick="go('deal')">Analyze Deal</button>
       </div>
-      <div class="fc-arr">›</div>
     </div>
-    <div style="background:linear-gradient(135deg,#7C3AED,#FF1A8C);border-radius:18px;padding:20px;margin-bottom:14px;display:flex;align-items:center;gap:16px;box-shadow:0 10px 30px rgba(124,58,237,0.2);position:relative;overflow:hidden">
-      <div style="width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">🤖</div>
-      <div style="flex:1">
-        <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:3px;font-family:'Inter',sans-serif">Ask Jackie AI</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.75);line-height:1.4;font-weight:300;font-family:'Inter',sans-serif">Ask me anything about real estate investing</div>
+
+    <div class="home-card" style="opacity:0.85;cursor:default">
+      <div class="hc-icon" style="background:linear-gradient(135deg,#7C3AED,#FF1A8C)">🤖</div>
+      <div class="hc-body">
+        <div class="hc-title">Ask Jackie AI</div>
+        <div class="hc-sub">Ask me anything about real estate investing</div>
       </div>
-      <div style="background:rgba(255,255,255,0.25);color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:8px;position:absolute;top:12px;right:12px;text-transform:uppercase;letter-spacing:0.04em">Coming Soon</div>
+      <div class="hc-badge">Coming Soon</div>
     </div>
-      <div style="background:linear-gradient(135deg,#FF1A8C 0%,#FF5CAD 100%);border-radius:18px;padding:20px;margin-bottom:14px;cursor:pointer;display:flex;align-items:center;gap:16px;box-shadow:0 6px 24px rgba(255,26,140,0.15)" onclick="go(&#39;history&#39;)">
-      <div style="width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,0.3);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">📋</div>
-      <div style="flex:1">
-        <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:4px;font-family:&#39;Inter&#39;,sans-serif;text-shadow:0 1px 2px rgba(0,0,0,0.06)">Deal History</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.85);line-height:1.5;font-weight:300;font-family:&#39;Inter&#39;,sans-serif">See every deal you have analyzed</div>
+    <div class="home-card" onclick="go('team')">
+      <div class="hc-icon" style="background:#29D0F5">🔍</div>
+      <div class="hc-body">
+        <div class="hc-title">Build my team</div>
+        <div class="hc-sub">Find realtors, lenders, title companies and contractors near you</div>
       </div>
-      <div style="font-size:20px;color:rgba(255,255,255,0.4);font-weight:200">›</div>
+      <div class="hc-arr">›</div>
+    </div>
+    <div class="home-card" onclick="go('history')">
+      <div class="hc-icon" style="background:#FF1A8C">📋</div>
+      <div class="hc-body">
+        <div class="hc-title">Deal History</div>
+        <div class="hc-sub">See every deal you have analyzed</div>
+      </div>
+      <div class="hc-arr">›</div>
     </div>
 
     <div class="tip-card" style="margin-bottom:16px">

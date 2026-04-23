@@ -944,36 +944,32 @@ function findARV(){
   fetch(url)
   .then(function(r){return r.json();})
   .then(function(d){
-    var rentcastArv=d.price||d.priceRangeLow||0;
-    if(!rentcastArv)throw new Error('No value found. Try a nearby address.');
-    var hasCrossCheck=d.computedPrice&&d.pricePerSqftMedian&&d.comparablesUsed;
-    var bestArv=hasCrossCheck?Math.round((rentcastArv+d.computedPrice)/2):rentcastArv;
-    arv=bestArv;
-    var ai=Math.round(bestArv*0.7);
+    var asIs=d.asIsValue||d.price||d.priceRangeLow||0;
+    if(!asIs)throw new Error('No value found. Try a nearby address.');
+    var hasARV=d.estimatedARV&&d.arvPricePerSqft&&d.arvCompsUsed;
+    var useARV=hasARV?d.estimatedARV:asIs;
+    arv=useARV;
+    var ai=Math.round(useARV*0.7);
     var html='';
-    if(hasCrossCheck){
-      var diffPct=Math.abs(d.computedPrice-rentcastArv)/rentcastArv*100;
-      html+='<div class="arv-lbl">Estimated after-repair value</div>';
-      html+='<div class="arv-value">'+fmt(bestArv)+'</div>';
-      html+='<div class="arv-note">Blended from two independent methods for higher accuracy</div>';
-      if(diffPct<=5){
-        html+='<div class="confidence-badge high">✓ High confidence — both methods agree</div>';
-      }else if(diffPct>=15){
-        html+='<div class="confidence-badge low">⚠ Estimates differ — review comps below</div>';
-      }
+    if(hasARV){
+      html+='<div class="arv-lbl">Estimated After-Repair Value (ARV)</div>';
+      html+='<div class="arv-value">'+fmt(d.estimatedARV)+'</div>';
+      html+='<div class="arv-note">Based on top-tier renovated comps in your area</div>';
       html+='<div class="xcheck-block">';
-      html+='<div class="xcheck-src">Public data: <strong>'+fmt(rentcastArv)+'</strong></div>';
+      html+='<div class="xcheck-src">As-is value: <strong>'+fmt(asIs)+'</strong></div>';
       html+='<div class="xcheck-src-divider">|</div>';
-      html+='<div class="xcheck-src">Comp math: <strong>'+fmt(d.computedPrice)+'</strong></div>';
-      html+='<div class="xcheck-src-divider">|</div>';
-      html+='<div class="ppsf-pill">$'+d.pricePerSqftMedian+'/sqft</div>';
+      html+='<div class="xcheck-src">ARV $/sqft: <strong>$'+d.arvPricePerSqft+'</strong></div>';
+      if(d.medianPricePerSqft){
+        html+='<div class="xcheck-src-divider">|</div>';
+        html+='<div class="ppsf-pill">Median $'+d.medianPricePerSqft+'/sqft</div>';
+      }
       html+='</div>';
       html+='<button class="xcheck-explain-toggle" onclick="toggleArvExplain()">How is this calculated?</button>';
-      html+='<div class="xcheck-explain-panel hidden" id="arv-explain"><p><strong>Two estimates, one combined number.</strong> We pull a value estimate from Rentcast (a property data service that uses recent sales) and we also do our own math by taking the median price per sqft from the comparable sales in your area and multiplying by your home\'s square footage.</p><p><strong>Why both?</strong> Single estimates can be off when local public records are stale or your home is unusual. Comparing two independent calculations gives you a sanity check, and blending them (50/50 average) gives a more accurate number than either alone.</p><p><strong>Want it more accurate?</strong> Add the bed, bath, and sqft of your subject property at the top of the deal analyzer. That overrides any incorrect public records data and gives both estimates a tighter starting point.</p></div>';
+      html+='<div class="xcheck-explain-panel hidden" id="arv-explain"><p><strong>Two numbers, two purposes.</strong> The as-is value ('+fmt(asIs)+') is what the property is worth today in its current condition, based on all recent sales nearby. The estimated ARV ('+fmt(d.estimatedARV)+') is what the property could sell for after renovations, based on the top-performing comps that likely sold renovated.</p><p><strong>How we estimate ARV:</strong> We look at all comparable sales, calculate the price per square foot for each, then filter to the top tier (70th to 95th percentile). These higher-priced comps are the ones most likely to have been renovated. We average their price per sqft and multiply by your property\'s square footage. New construction is excluded from the top tier to keep the number realistic for flips.</p><p><strong>Want it more accurate?</strong> Add the bed, bath, and sqft of your subject property at the top. The more accurate your inputs, the more accurate the ARV.</p></div>';
     }else{
-      html+='<div class="arv-lbl">Based on nearby sold homes, this house could be worth</div>';
-      html+='<div class="arv-value">'+fmt(rentcastArv)+'</div>';
-      html+='<div class="arv-note">after repairs — this is your ARV (After Repair Value)</div>';
+      html+='<div class="arv-lbl">Estimated property value</div>';
+      html+='<div class="arv-value">'+fmt(asIs)+'</div>';
+      html+='<div class="arv-note">Based on nearby comparable sales</div>';
     }
     html+='<div class="allin-block"><div><div class="allin-left">Your all-in number (ARV x 70%)<small>Stay at or under this number</small></div></div><div class="allin-right">'+fmt(ai)+'</div></div>';
     document.getElementById('arv-display').innerHTML=html;

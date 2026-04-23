@@ -84,40 +84,63 @@ export default async function handler(req, res) {
 
     compTier.count = finalComps.length;
 
-    // Cross-check: compute our own ARV from median price-per-sqft of the broader tier
-    // This serves as a sanity check on Rentcast's AVM, especially in markets where public records are weak
-    let computedPrice = null;
-    let pricePerSqftMedian = null;
-    let comparablesUsed = 0;
+    // ARV estimation: filter comps to approximate "renovated" properties
+    // Renovated homes sell for more per sqft. By taking the 70th-95th percentile
+    // by price-per-sqft, we approximate what a realtor does when cherry-picking
+    // renovated comps. The top 5% is excluded to filter out likely new construction
+    // which Jackie's users don't want in their ARV.
+    let estimatedARV = null;
+    let asIsValue = data.price || 0;
+    let arvPricePerSqft = null;
+    let arvCompsUsed = 0;
     let avgCompSqft = null;
+
     const validComps = tierComps.filter(c => c.price > 0 && c.squareFootage > 0);
     const ppsfValues = validComps
-      .map(c => c.price / c.squareFootage)
-      .sort((a, b) => a - b);
+      .map((c, i) => ({ ppsf: c.price / c.squareFootage, index: i, comp: c }))
+      .sort((a, b) => a.ppsf - b.ppsf);
+
     if (ppsfValues.length >= 3) {
-      // Drop the highest 10% and lowest 10% to remove outliers
-      const dropCount = Math.floor(ppsfValues.length * 0.1);
-      const trimmed = ppsfValues.slice(dropCount, ppsfValues.length - dropCount);
-      const mid = Math.floor(trimmed.length / 2);
-      pricePerSqftMedian = trimmed.length % 2 === 0
-        ? (trimmed[mid - 1] + trimmed[mid]) / 2
-        : trimmed[mid];
-      comparablesUsed = trimmed.length;
-      // Average sqft of comps with valid sqft data (used as a fallback if subject sqft is unknown)
-      const sqftSum = validComps.reduce((acc, c) => acc + c.squareFootage, 0);
-      avgCompSqft = Math.round(sqftSum / validComps.length);
-      // Determine target sqft for our computed price:
-      // 1. User-provided sqft (most accurate)
-      // 2. Rentcast's auto-looked-up subject property sqft
-      // 3. Average sqft of valid comps (proxy for "houses like this in this area")
-      const targetSqft = sqft != null
-        ? sqft
-        : (data.subjectProperty && data.subjectProperty.squareFootage
-            ? data.subjectProperty.squareFootage
-            : avgCompSqft);
-      if (targetSqft) {
-        computedPrice = Math.round(pricePerSqftMedian * targetSqft);
+      // Take 70th to 95th percentile by price-per-sqft
+      // This captures "renovated" tier while excluding new builds (top 5%) and distressed (bottom 70%)
+      const p70Index = Math.floor(ppsfValues.length * 0.70);
+      const p95Index = Math.ceil(ppsfValues.length * 0.95);
+      let topTier = ppsfValues.slice(p70Index, p95Index);
+
+      // Ensure we have at least 2 comps in the top tier
+      if (topTier.length < 2) {
+        // Fall back to top 30% without the new-build exclusion
+        const p70 = Math.floor(ppsfValues.length * 0.70);
+        topTier = ppsfValues.slice(p70);
       }
+
+      if (topTier.length >= 1) {
+        // Average the top-tier ppsf values
+        const topPpsfSum = topTier.reduce((acc, v) => acc + v.ppsf, 0);
+        arvPricePerSqft = Math.round(topPpsfSum / topTier.length);
+        arvCompsUsed = topTier.length;
+
+        // Average sqft of ALL valid comps (used as fallback if subject sqft unknown)
+        const sqftSum = validComps.reduce((acc, c) => acc + c.squareFootage, 0);
+        avgCompSqft = Math.round(sqftSum / validComps.length);
+
+        // Determine target sqft for ARV calculation
+        const targetSqft = sqft != null
+          ? sqft
+          : (data.subjectProperty && data.subjectProperty.squareFootage
+              ? data.subjectProperty.squareFootage
+              : avgCompSqft);
+
+        if (targetSqft) {
+          estimatedARV = Math.round(arvPricePerSqft * targetSqft);
+        }
+      }
+
+      // Also compute median ppsf across ALL comps for reference
+      const allMid = Math.floor(ppsfValues.length / 2);
+      var medianPpsf = ppsfValues.length % 2 === 0
+        ? Math.round((ppsfValues[allMid - 1].ppsf + ppsfValues[allMid].ppsf) / 2)
+        : Math.round(ppsfValues[allMid].ppsf);
     }
 
     return res.status(200).json({
@@ -127,9 +150,11 @@ export default async function handler(req, res) {
       subjectProperty: data.subjectProperty || null,
       comparables: finalComps,
       compTier,
-      computedPrice,
-      pricePerSqftMedian: pricePerSqftMedian ? Math.round(pricePerSqftMedian) : null,
-      comparablesUsed
+      asIsValue: asIsValue,
+      estimatedARV: estimatedARV,
+      arvPricePerSqft: arvPricePerSqft,
+      arvCompsUsed: arvCompsUsed,
+      medianPricePerSqft: typeof medianPpsf !== 'undefined' ? medianPpsf : null
     });
   } catch (e) {
     return res.status(500).json({ error: 'Failed to fetch ARV' });

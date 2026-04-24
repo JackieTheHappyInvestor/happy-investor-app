@@ -131,9 +131,27 @@ export default async function handler(req, res) {
               ? data.subjectProperty.squareFootage
               : avgCompSqft);
 
-        if (targetSqft) {
-          estimatedARV = Math.round(arvPricePerSqft * targetSqft);
+        // Two approaches to ARV:
+        // 1. Top-tier ppsf × subject sqft
+        // 2. Average sale price of top-tier comps (catches sqft mismatch)
+        const ppsfDerived = targetSqft ? Math.round(arvPricePerSqft * targetSqft) : null;
+        const avgTopPrice = Math.round(topTier.reduce((acc, v) => acc + v.comp.price, 0) / topTier.length);
+
+        // Use whichever is higher — both methods approximate renovated value
+        if (ppsfDerived && avgTopPrice) {
+          estimatedARV = Math.max(ppsfDerived, avgTopPrice);
+        } else {
+          estimatedARV = ppsfDerived || avgTopPrice;
         }
+      }
+
+      // ARV must be higher than as-is value by definition (post-renovation > current condition)
+      // If our filter produces a lower number, the comp pool doesn't have enough
+      // differentiation between renovated and as-is sales to estimate reliably
+      if (estimatedARV && asIsValue && estimatedARV <= asIsValue) {
+        estimatedARV = null;
+        arvPricePerSqft = null;
+        arvCompsUsed = 0;
       }
 
       // Also compute median ppsf across ALL comps for reference

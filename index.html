@@ -398,7 +398,10 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
               <input class="pd-input" type="number" id="pd-sqft" placeholder="1500" min="0" step="10">
             </div>
           </div>
-          <div class="prop-details-helper">💡 Adding these makes your ARV way more accurate</div>
+          <div style="background:#FFF8E7;border-radius:10px;padding:10px 14px;margin:8px 0 4px;display:flex;align-items:center;gap:10px;border:1px solid #FFE5A0">
+            <div style="font-size:16px;flex-shrink:0">💡</div>
+            <div style="font-size:12px;color:#7A6B3A;line-height:1.4"><strong style="color:#C49A20">Jackie's Pro Tip:</strong> Enter the beds, baths, and sqft above for a more precise ARV. The more you tell us about the property, the better the estimate.</div>
+          </div>
           <div class="helper">We'll pull nearby comps and estimate the after-repair value.</div>
           <button class="arv-btn" id="arv-btn" onclick="findARV()">Get ARV &amp; Analyze Deal</button>
           <div class="loading-area" id="arv-load">

@@ -164,8 +164,28 @@ export default async function handler(req, res) {
         arvCompsUsed = topTier.length;
 
         // Compute ARV point estimate
-        const targetSqft = subjectSqft || Math.round(arvComps.reduce((s, c) => s + c.squareFootage, 0) / arvComps.length);
-        estimatedARV = Math.round(topPpsfWeighted * targetSqft);
+        // Check if subject sqft is suspiciously different from comp average
+        // (Rentcast sometimes has incorrect sqft in public records)
+        const avgCompSqft = Math.round(arvComps.reduce((s, c) => s + c.squareFootage, 0) / arvComps.length);
+        let targetSqft = subjectSqft || avgCompSqft;
+        
+        // If subject sqft is more than 40% off from comp average, use comp average
+        // (e.g., Rentcast says 672 sqft for a 3bd house when comps are 1200+ sqft)
+        if (subjectSqft && avgCompSqft) {
+          const sqftRatio = subjectSqft / avgCompSqft;
+          if (sqftRatio < 0.6 || sqftRatio > 1.6) {
+            targetSqft = avgCompSqft;
+          }
+        }
+
+        // Method 1: weighted top-tier ppsf × target sqft
+        const ppsfDerived = Math.round(topPpsfWeighted * targetSqft);
+        
+        // Method 2: weighted average sale price of top-tier comps
+        const avgTopPrice = Math.round(topTier.reduce((s, v) => s + v.price * v.weight, 0) / topWeightSum);
+
+        // Use the higher of the two methods
+        estimatedARV = Math.max(ppsfDerived, avgTopPrice);
 
         // Compute range using weighted 25th and 75th percentile ppsf
         let cum25 = 0, cum75 = 0;
@@ -181,13 +201,22 @@ export default async function handler(req, res) {
           cum25b += weighted[i].weight;
           if (cum25b >= totalWeight * 0.25) { p25Ppsf = weighted[i].ppsf; break; }
         }
-        // Conservative uses median ppsf, optimistic uses 75th
-        arvLow = Math.round(medianPpsfW * targetSqft);
-        arvHigh = Math.round(p75Ppsf * targetSqft);
+        // Compute range
+        // Sort top-tier comps by price for price-based range
+        const topPrices = topTier.map(v => v.price).sort((a, b) => a - b);
+        const ppsf25 = Math.round(medianPpsfW * targetSqft);
+        const ppsf75 = Math.round(p75Ppsf * targetSqft);
+        
+        // Conservative: lower of median-ppsf-derived or lowest top-tier price
+        // Optimistic: higher of 75th-ppsf-derived or highest top-tier price
+        arvLow = Math.min(ppsf25, topPrices[0]);
+        arvHigh = Math.max(ppsf75, topPrices[topPrices.length - 1]);
 
-        // Ensure range makes sense
+        // Ensure range makes sense relative to the ARV point estimate
         if (arvLow > estimatedARV) arvLow = estimatedARV;
         if (arvHigh < estimatedARV) arvHigh = estimatedARV;
+        // ARV low should not be below as-is
+        if (arvLow < asIsValue) arvLow = asIsValue;
       }
 
       // Median ppsf across ALL surviving comps for reference

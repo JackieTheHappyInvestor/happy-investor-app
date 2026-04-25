@@ -166,29 +166,8 @@ export default async function handler(req, res) {
 
       const adjusted = arvComps.map(c => {
         const compPpsf = c.price / c.squareFootage;
-        let w = (c.correlation != null && c.correlation > 0) ? c.correlation : 0.5;
+        const w = (c.correlation != null && c.correlation > 0) ? c.correlation : 0.5;
         let totalAdj = 0;
-
-        // --- SELF-COMP DETECTION ---
-        // If the comp IS the subject property (same address), give it max weight
-        // and skip all adjustments — it's the most relevant data point
-        const subjectNorm = address.toLowerCase().replace(/[^a-z0-9]/g, '');
-        const compNorm = (c.formattedAddress || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-        const isSelfComp = compNorm.length > 10 && subjectNorm.includes(compNorm.slice(0, 15));
-        if (isSelfComp) {
-          // Self-comp: no adjustments needed, max weight
-          w = 1.0;
-          return {
-            price: c.price,
-            adjustedPrice: c.price,
-            totalAdj: 0,
-            ppsf: compPpsf,
-            weight: w,
-            comp: c,
-            reliable: true,
-            isSelfComp: true
-          };
-        }
 
         // --- GLA ADJUSTMENT (the 40% rule) ---
         // Adjust at 40% of comp's $/sqft per sqft difference
@@ -238,8 +217,7 @@ export default async function handler(req, res) {
           ppsf: compPpsf,
           weight: reliable ? w : w * 0.5, // Downweight heavily adjusted comps
           comp: c,
-          reliable,
-          isSelfComp: false
+          reliable
         };
       });
 

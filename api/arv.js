@@ -186,7 +186,6 @@ export default async function handler(req, res) {
         const ppsfDerived = Math.round(topPpsfWeighted * targetSqft);
         
         // Method 2: weighted median sale price of top-tier comps
-        // Median is more robust against outlier comps pulling the number up
         const topSorted = topTier.slice().sort((a, b) => a.price - b.price);
         const topTotalW = topSorted.reduce((s, v) => s + v.weight, 0);
         let topCumW = 0;
@@ -196,13 +195,27 @@ export default async function handler(req, res) {
           if (topCumW >= topTotalW * 0.5) { medianTopPrice = topSorted[i].price; break; }
         }
 
-        // When sqft data is suspect, trust the direct price method
-        // When sqft is reliable, use the higher of both methods
-        if (sqftSuspect) {
-          estimatedARV = medianTopPrice;
-        } else {
-          estimatedARV = Math.max(ppsfDerived, medianTopPrice);
+        // Method 3: weighted median sale price of ALL comps (anchors to full market)
+        const allSorted = weighted.slice().sort((a, b) => a.price - b.price);
+        const allTotalW = allSorted.reduce((s, v) => s + v.weight, 0);
+        let allCumW = 0;
+        let medianAllPrice = allSorted[Math.floor(allSorted.length / 2)].price;
+        for (let i = 0; i < allSorted.length; i++) {
+          allCumW += allSorted[i].weight;
+          if (allCumW >= allTotalW * 0.5) { medianAllPrice = allSorted[i].price; break; }
         }
+
+        // Determine the top-tier estimate (best of ppsf-derived or median top price)
+        let topEstimate;
+        if (sqftSuspect) {
+          topEstimate = medianTopPrice;
+        } else {
+          topEstimate = Math.max(ppsfDerived, medianTopPrice);
+        }
+
+        // Blend: 60% top-tier + 40% full market median
+        // This anchors to reality while still showing renovation upside
+        estimatedARV = Math.round(topEstimate * 0.6 + medianAllPrice * 0.4);
 
         // Compute range using weighted 25th and 75th percentile ppsf
         let cum25 = 0, cum75 = 0;

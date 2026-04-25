@@ -171,10 +171,12 @@ export default async function handler(req, res) {
         
         // If subject sqft is more than 40% off from comp average, use comp average
         // (e.g., Rentcast says 672 sqft for a 3bd house when comps are 1200+ sqft)
+        let sqftSuspect = false;
         if (subjectSqft && avgCompSqft) {
           const sqftRatio = subjectSqft / avgCompSqft;
           if (sqftRatio < 0.6 || sqftRatio > 1.6) {
             targetSqft = avgCompSqft;
+            sqftSuspect = true;
           }
         }
 
@@ -184,8 +186,13 @@ export default async function handler(req, res) {
         // Method 2: weighted average sale price of top-tier comps
         const avgTopPrice = Math.round(topTier.reduce((s, v) => s + v.price * v.weight, 0) / topWeightSum);
 
-        // Use the higher of the two methods
-        estimatedARV = Math.max(ppsfDerived, avgTopPrice);
+        // When sqft data is suspect, trust the direct price method
+        // When sqft is reliable, use the higher of both methods
+        if (sqftSuspect) {
+          estimatedARV = avgTopPrice;
+        } else {
+          estimatedARV = Math.max(ppsfDerived, avgTopPrice);
+        }
 
         // Compute range using weighted 25th and 75th percentile ppsf
         let cum25 = 0, cum75 = 0;

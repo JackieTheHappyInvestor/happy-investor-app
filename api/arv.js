@@ -191,8 +191,10 @@ export default async function handler(req, res) {
       var medianPpsf = Math.round(medianPpsfW);
     }
 
-    // ARV must be higher than as-is value
-    if (estimatedARV && asIsValue && estimatedARV <= asIsValue) {
+    // ARV should generally be higher than as-is value
+    // Only reject if ARV is more than 5% below as-is (allows for markets where
+    // renovated comps and as-is values converge)
+    if (estimatedARV && asIsValue && estimatedARV < asIsValue * 0.95) {
       estimatedARV = null;
       arvLow = null;
       arvHigh = null;

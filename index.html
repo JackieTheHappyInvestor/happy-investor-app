@@ -974,6 +974,7 @@ function findARV(){
       html+='<div class="arv-lbl">Estimated as-is value</div>';
       html+='<div class="arv-value">'+fmt(asIs)+'</div>';
       html+='<div class="arv-note">Not enough similar comps to estimate ARV reliably. This is the current as-is value. For an accurate ARV, consider a local realtor\'s comp analysis.</div>';
+      if(d._debug){html+='<div style="font-size:11px;color:#999;margin-top:8px">DEBUG: total='+d._debug.totalComps+' withSqft='+d._debug.withSqft+' afterStep1='+d._debug.afterStep1+' subjectSqft='+d._debug.subjectSqft+' afterFilters='+d._debug.arvCompsAfterFilters+'</div>';}
     }
     html+='<div class="allin-block"><div><div class="allin-left">Your all-in number (ARV x 70%)<small>Stay at or under this number</small></div></div><div class="allin-right">'+fmt(ai)+'</div></div>';
     document.getElementById('arv-display').innerHTML=html;

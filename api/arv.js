@@ -131,7 +131,12 @@ export default async function handler(req, res) {
       }
     }
 
-    // Step 4: Compute weighted ppsf using Rentcast's correlation score
+    // Step 4: Cap at 8 most similar comps (Rentcast pre-sorts by correlation)
+    if (arvComps.length > 8) {
+      arvComps = arvComps.slice(0, 8);
+    }
+
+    // Step 5: Compute weighted ARV using Rentcast's correlation score
     if (arvComps.length >= 3) {
       const weighted = arvComps.map(c => {
         const ppsf = c.price / c.squareFootage;
@@ -183,15 +188,23 @@ export default async function handler(req, res) {
         // Method 1: weighted top-tier ppsf × target sqft
         const ppsfDerived = Math.round(topPpsfWeighted * targetSqft);
         
-        // Method 2: weighted average sale price of top-tier comps
-        const avgTopPrice = Math.round(topTier.reduce((s, v) => s + v.price * v.weight, 0) / topWeightSum);
+        // Method 2: weighted median sale price of top-tier comps
+        // Median is more robust against outlier comps pulling the number up
+        const topSorted = topTier.slice().sort((a, b) => a.price - b.price);
+        const topTotalW = topSorted.reduce((s, v) => s + v.weight, 0);
+        let topCumW = 0;
+        let medianTopPrice = topSorted[Math.floor(topSorted.length / 2)].price;
+        for (let i = 0; i < topSorted.length; i++) {
+          topCumW += topSorted[i].weight;
+          if (topCumW >= topTotalW * 0.5) { medianTopPrice = topSorted[i].price; break; }
+        }
 
         // When sqft data is suspect, trust the direct price method
         // When sqft is reliable, use the higher of both methods
         if (sqftSuspect) {
-          estimatedARV = avgTopPrice;
+          estimatedARV = medianTopPrice;
         } else {
-          estimatedARV = Math.max(ppsfDerived, avgTopPrice);
+          estimatedARV = Math.max(ppsfDerived, medianTopPrice);
         }
 
         // Compute range using weighted 25th and 75th percentile ppsf

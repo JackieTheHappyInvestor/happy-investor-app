@@ -89,11 +89,13 @@ export default async function handler(req, res) {
 
     compTier.count = finalComps.length;
 
-    // --- ARV ESTIMATION v2 ---
-    // Uses three filters the old version didn't:
-    // 1. Exclude new construction (listingType flag)
-    // 2. Exclude comps outside ±20% sqft of subject (Fannie Mae appraisal standard)
-    // 3. Weight surviving comps by Rentcast's correlation score
+    // --- ARV ESTIMATION v3: Appraiser-style paired-sales adjustments ---
+    // Instead of picking "top" comps and averaging, we ADJUST every comp's price
+    // to account for differences from the subject (sqft, beds, baths).
+    // This is exactly what a licensed appraiser does on a URAR form.
+    // Adjusted prices cluster tightly because differences are normalized away.
+    // The top half of adjusted prices represents renovated-condition sales.
+
     let estimatedARV = null;
     let arvLow = null;
     let arvHigh = null;
@@ -101,11 +103,21 @@ export default async function handler(req, res) {
     let arvPricePerSqft = null;
     let arvCompsUsed = 0;
 
-    // Determine subject sqft
+    // Determine subject attributes
     const subjectSqft = sqft != null
       ? sqft
       : (data.subjectProperty && data.subjectProperty.squareFootage
           ? data.subjectProperty.squareFootage
+          : null);
+    const subjectBeds = beds != null
+      ? beds
+      : (data.subjectProperty && data.subjectProperty.bedrooms
+          ? data.subjectProperty.bedrooms
+          : null);
+    const subjectBaths = baths != null
+      ? baths
+      : (data.subjectProperty && data.subjectProperty.bathrooms
+          ? data.subjectProperty.bathrooms
           : null);
 
     // Step 1: Start with comps that have valid price and sqft
@@ -117,145 +129,162 @@ export default async function handler(req, res) {
       return true;
     });
 
-    // Step 3: Exclude comps outside ±20% sqft of subject (if we know subject sqft)
+    // Step 3: Exclude comps outside ±25% sqft of subject (if we know subject sqft)
+    // Slightly wider than before (25% vs 20%) because adjustments handle the difference
     if (subjectSqft) {
-      const sqftLow = subjectSqft * 0.80;
-      const sqftHigh = subjectSqft * 1.20;
+      const avgCompSqft = Math.round(arvComps.reduce((s, c) => s + c.squareFootage, 0) / arvComps.length);
+      // Check if subject sqft is suspect (>40% off from comp average)
+      let effectiveSqft = subjectSqft;
+      if (avgCompSqft && (subjectSqft / avgCompSqft < 0.6 || subjectSqft / avgCompSqft > 1.6)) {
+        effectiveSqft = avgCompSqft; // Use comp average when Rentcast data is wrong
+      }
+      const sqftLow = effectiveSqft * 0.75;
+      const sqftHigh = effectiveSqft * 1.25;
       const sqftFiltered = arvComps.filter(c => c.squareFootage >= sqftLow && c.squareFootage <= sqftHigh);
-      // Only apply filter if we retain at least 3 comps
       if (sqftFiltered.length >= 3) {
         arvComps = sqftFiltered;
       }
     }
 
-    // Step 4: Cap at 8 most similar comps (Rentcast pre-sorts by correlation)
-    if (arvComps.length > 8) {
-      arvComps = arvComps.slice(0, 8);
+    // Step 4: Cap at 10 most similar comps
+    if (arvComps.length > 10) {
+      arvComps = arvComps.slice(0, 10);
     }
 
-    // Step 5: Compute weighted ARV using Rentcast's correlation score
+    // Step 5: Compute adjusted prices using appraiser-style paired-sales adjustments
     if (arvComps.length >= 3) {
-      const weighted = arvComps.map(c => {
-        const ppsf = c.price / c.squareFootage;
+      // Determine effective subject sqft for adjustments
+      const avgCompSqft = Math.round(arvComps.reduce((s, c) => s + c.squareFootage, 0) / arvComps.length);
+      let targetSqft = subjectSqft || avgCompSqft;
+      if (subjectSqft && avgCompSqft && (subjectSqft / avgCompSqft < 0.6 || subjectSqft / avgCompSqft > 1.6)) {
+        targetSqft = avgCompSqft;
+      }
+
+      // Average comp beds/baths as fallback when subject data is missing
+      const avgCompBeds = subjectBeds || Math.round(arvComps.reduce((s, c) => s + (c.bedrooms || 3), 0) / arvComps.length);
+      const avgCompBaths = subjectBaths || (arvComps.reduce((s, c) => s + (c.bathrooms || 2), 0) / arvComps.length);
+
+      const adjusted = arvComps.map(c => {
+        const compPpsf = c.price / c.squareFootage;
         const w = (c.correlation != null && c.correlation > 0) ? c.correlation : 0.5;
-        return { ppsf, weight: w, price: c.price, comp: c };
+        let totalAdj = 0;
+
+        // --- GLA ADJUSTMENT (the 40% rule) ---
+        // Adjust at 40% of comp's $/sqft per sqft difference
+        // If subject is bigger, comp price goes UP (comp would cost more if it were bigger)
+        // If subject is smaller, comp price goes DOWN
+        const sqftDiff = targetSqft - c.squareFootage;
+        if (Math.abs(sqftDiff) > Math.max(100, targetSqft * 0.05)) {
+          const glaRate = compPpsf * 0.40;
+          totalAdj += sqftDiff * glaRate;
+        }
+
+        // --- BATHROOM ADJUSTMENT ---
+        // Full bath: max($3000, 1.5% of comp price)
+        // Half bath: 55% of full bath value
+        if (avgCompBaths != null && c.bathrooms != null) {
+          const fullBathValue = Math.max(3000, c.price * 0.015);
+          // Rentcast gives total baths (e.g., 2.5 = 2 full + 1 half)
+          const subjectFull = Math.floor(avgCompBaths);
+          const subjectHalf = (avgCompBaths % 1 >= 0.5) ? 1 : 0;
+          const compFull = Math.floor(c.bathrooms);
+          const compHalf = (c.bathrooms % 1 >= 0.5) ? 1 : 0;
+          totalAdj += (subjectFull - compFull) * fullBathValue;
+          totalAdj += (subjectHalf - compHalf) * (fullBathValue * 0.55);
+        }
+
+        // --- BEDROOM ADJUSTMENT ---
+        // $0 when both >= 3 and GLA is adjusted (avoid double-counting)
+        // Only apply at the 2→3 BR threshold (functional utility jump)
+        if (avgCompBeds != null && c.bedrooms != null) {
+          const brDiff = avgCompBeds - c.bedrooms;
+          if (Math.min(avgCompBeds, c.bedrooms) < 3 && Math.abs(brDiff) >= 1) {
+            totalAdj += brDiff * c.price * 0.06;
+          }
+          // Skip adjustment when both >= 3 (absorbed by GLA)
+        }
+
+        // --- COMPLIANCE CHECK ---
+        // Flag comps with gross adjustment > 25% (FHA/lender threshold)
+        const grossPct = Math.abs(totalAdj) / c.price;
+        const reliable = grossPct <= 0.25;
+
+        const adjustedPrice = c.price + totalAdj;
+        return {
+          price: c.price,
+          adjustedPrice: Math.round(adjustedPrice),
+          totalAdj: Math.round(totalAdj),
+          ppsf: compPpsf,
+          weight: reliable ? w : w * 0.5, // Downweight heavily adjusted comps
+          comp: c,
+          reliable
+        };
       });
 
-      // Sort by ppsf for percentile calculations
-      weighted.sort((a, b) => a.ppsf - b.ppsf);
+      // Sort adjusted prices ascending
+      adjusted.sort((a, b) => a.adjustedPrice - b.adjustedPrice);
+      arvCompsUsed = adjusted.length;
 
-      // Weighted median ppsf
-      const totalWeight = weighted.reduce((s, v) => s + v.weight, 0);
-      let cumWeight = 0;
-      let medianPpsfW = weighted[weighted.length - 1].ppsf;
-      for (let i = 0; i < weighted.length; i++) {
-        cumWeight += weighted[i].weight;
-        if (cumWeight >= totalWeight * 0.5) {
-          medianPpsfW = weighted[i].ppsf;
+      // Compute weighted median of ALL adjusted prices (= as-is market value of subject)
+      const totalWeight = adjusted.reduce((s, v) => s + v.weight, 0);
+      let cumW = 0;
+      let medianAdjPrice = adjusted[Math.floor(adjusted.length / 2)].adjustedPrice;
+      for (let i = 0; i < adjusted.length; i++) {
+        cumW += adjusted[i].weight;
+        if (cumW >= totalWeight * 0.5) {
+          medianAdjPrice = adjusted[i].adjustedPrice;
           break;
         }
       }
 
-      // Take top tier (above median ppsf) as "renovated" proxy
-      const topTier = weighted.filter(v => v.ppsf >= medianPpsfW);
-      if (topTier.length >= 1) {
-        // Weighted average ppsf of top tier
-        const topWeightSum = topTier.reduce((s, v) => s + v.weight, 0);
-        const topPpsfWeighted = topTier.reduce((s, v) => s + v.ppsf * v.weight, 0) / topWeightSum;
-        arvPricePerSqft = Math.round(topPpsfWeighted);
-        arvCompsUsed = topTier.length;
-
-        // Compute ARV point estimate
-        // Check if subject sqft is suspiciously different from comp average
-        // (Rentcast sometimes has incorrect sqft in public records)
-        const avgCompSqft = Math.round(arvComps.reduce((s, c) => s + c.squareFootage, 0) / arvComps.length);
-        let targetSqft = subjectSqft || avgCompSqft;
-        
-        // If subject sqft is more than 40% off from comp average, use comp average
-        // (e.g., Rentcast says 672 sqft for a 3bd house when comps are 1200+ sqft)
-        let sqftSuspect = false;
-        if (subjectSqft && avgCompSqft) {
-          const sqftRatio = subjectSqft / avgCompSqft;
-          if (sqftRatio < 0.6 || sqftRatio > 1.6) {
-            targetSqft = avgCompSqft;
-            sqftSuspect = true;
+      // For ARV: take the upper half of adjusted prices (represents renovated condition)
+      // The adjustments normalized for size/bed/bath, so remaining variation is CONDITION
+      const upperHalf = adjusted.filter(v => v.adjustedPrice >= medianAdjPrice);
+      if (upperHalf.length >= 1) {
+        const upperWeightSum = upperHalf.reduce((s, v) => s + v.weight, 0);
+        let upperCumW = 0;
+        let medianUpperPrice = upperHalf[Math.floor(upperHalf.length / 2)].adjustedPrice;
+        for (let i = 0; i < upperHalf.length; i++) {
+          upperCumW += upperHalf[i].weight;
+          if (upperCumW >= upperWeightSum * 0.5) {
+            medianUpperPrice = upperHalf[i].adjustedPrice;
+            break;
           }
         }
-
-        // Method 1: weighted top-tier ppsf × target sqft
-        const ppsfDerived = Math.round(topPpsfWeighted * targetSqft);
-        
-        // Method 2: weighted median sale price of top-tier comps
-        const topSorted = topTier.slice().sort((a, b) => a.price - b.price);
-        const topTotalW = topSorted.reduce((s, v) => s + v.weight, 0);
-        let topCumW = 0;
-        let medianTopPrice = topSorted[Math.floor(topSorted.length / 2)].price;
-        for (let i = 0; i < topSorted.length; i++) {
-          topCumW += topSorted[i].weight;
-          if (topCumW >= topTotalW * 0.5) { medianTopPrice = topSorted[i].price; break; }
-        }
-
-        // Method 3: weighted median sale price of ALL comps (anchors to full market)
-        const allSorted = weighted.slice().sort((a, b) => a.price - b.price);
-        const allTotalW = allSorted.reduce((s, v) => s + v.weight, 0);
-        let allCumW = 0;
-        let medianAllPrice = allSorted[Math.floor(allSorted.length / 2)].price;
-        for (let i = 0; i < allSorted.length; i++) {
-          allCumW += allSorted[i].weight;
-          if (allCumW >= allTotalW * 0.5) { medianAllPrice = allSorted[i].price; break; }
-        }
-
-        // Determine the top-tier estimate (best of ppsf-derived or median top price)
-        let topEstimate;
-        if (sqftSuspect) {
-          topEstimate = medianTopPrice;
-        } else {
-          topEstimate = Math.max(ppsfDerived, medianTopPrice);
-        }
-
-        // Blend: 60% top-tier + 40% full market median
-        // This anchors to reality while still showing renovation upside
-        estimatedARV = Math.round(topEstimate * 0.6 + medianAllPrice * 0.4);
-
-        // Compute range using weighted 25th and 75th percentile ppsf
-        let cum25 = 0, cum75 = 0;
-        let p25Ppsf = weighted[0].ppsf;
-        let p75Ppsf = weighted[weighted.length - 1].ppsf;
-        for (let i = 0; i < weighted.length; i++) {
-          cum25 += weighted[i].weight;
-          if (cum25 >= totalWeight * 0.75) { p75Ppsf = weighted[i].ppsf; break; }
-        }
-        // Reset for 25th
-        let cum25b = 0;
-        for (let i = 0; i < weighted.length; i++) {
-          cum25b += weighted[i].weight;
-          if (cum25b >= totalWeight * 0.25) { p25Ppsf = weighted[i].ppsf; break; }
-        }
-        // Compute range
-        // Sort top-tier comps by price for price-based range
-        const topPrices = topTier.map(v => v.price).sort((a, b) => a - b);
-        const ppsf25 = Math.round(medianPpsfW * targetSqft);
-        const ppsf75 = Math.round(p75Ppsf * targetSqft);
-        
-        // Conservative: lower of median-ppsf-derived or lowest top-tier price
-        // Optimistic: higher of 75th-ppsf-derived or highest top-tier price
-        arvLow = Math.min(ppsf25, topPrices[0]);
-        arvHigh = Math.max(ppsf75, topPrices[topPrices.length - 1]);
-
-        // Ensure range makes sense relative to the ARV point estimate
-        if (arvLow > estimatedARV) arvLow = estimatedARV;
-        if (arvHigh < estimatedARV) arvHigh = estimatedARV;
-        // ARV low should not be below as-is
-        if (arvLow < asIsValue) arvLow = asIsValue;
+        estimatedARV = medianUpperPrice;
       }
 
-      // Median ppsf across ALL surviving comps for reference
-      var medianPpsf = Math.round(medianPpsfW);
+      // Compute $/sqft for display
+      if (estimatedARV && targetSqft) {
+        arvPricePerSqft = Math.round(estimatedARV / targetSqft);
+      }
+
+      // Range: 25th and 75th percentile of adjusted prices
+      let p25Price = adjusted[0].adjustedPrice;
+      let p75Price = adjusted[adjusted.length - 1].adjustedPrice;
+      let cumW25 = 0;
+      for (let i = 0; i < adjusted.length; i++) {
+        cumW25 += adjusted[i].weight;
+        if (cumW25 >= totalWeight * 0.25) { p25Price = adjusted[i].adjustedPrice; break; }
+      }
+      let cumW75 = 0;
+      for (let i = 0; i < adjusted.length; i++) {
+        cumW75 += adjusted[i].weight;
+        if (cumW75 >= totalWeight * 0.75) { p75Price = adjusted[i].adjustedPrice; break; }
+      }
+      arvLow = p25Price;
+      arvHigh = p75Price;
+
+      // Ensure range makes sense
+      if (arvLow > estimatedARV) arvLow = estimatedARV;
+      if (arvHigh < estimatedARV) arvHigh = estimatedARV;
+      if (arvLow < asIsValue) arvLow = asIsValue;
+
+      // Median ppsf for display
+      var medianPpsf = targetSqft ? Math.round(medianAdjPrice / targetSqft) : null;
     }
 
     // ARV should generally be higher than as-is value
-    // Only reject if ARV is more than 5% below as-is (allows for markets where
-    // renovated comps and as-is values converge)
     if (estimatedARV && asIsValue && estimatedARV < asIsValue * 0.95) {
       estimatedARV = null;
       arvLow = null;

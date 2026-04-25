@@ -164,25 +164,6 @@ export default async function handler(req, res) {
       const avgCompBeds = subjectBeds || Math.round(arvComps.reduce((s, c) => s + (c.bedrooms || 3), 0) / arvComps.length);
       const avgCompBaths = subjectBaths || (arvComps.reduce((s, c) => s + (c.bathrooms || 2), 0) / arvComps.length);
 
-      // --- MARKET-DERIVED TIME ADJUSTMENT ---
-      // Derive local appreciation rate from the comp data itself
-      // Compare average ppsf of recent comps vs older comps
-      let monthlyAppreciation = 0;
-      const recentComps = arvComps.filter(c => c.daysOld <= 45);
-      const olderComps = arvComps.filter(c => c.daysOld > 45);
-      if (recentComps.length >= 2 && olderComps.length >= 2) {
-        const recentAvgPpsf = recentComps.reduce((s, c) => s + c.price / c.squareFootage, 0) / recentComps.length;
-        const olderAvgPpsf = olderComps.reduce((s, c) => s + c.price / c.squareFootage, 0) / olderComps.length;
-        const recentAvgDays = recentComps.reduce((s, c) => s + c.daysOld, 0) / recentComps.length;
-        const olderAvgDays = olderComps.reduce((s, c) => s + c.daysOld, 0) / olderComps.length;
-        const monthsGap = (olderAvgDays - recentAvgDays) / 30;
-        if (monthsGap > 0.5) {
-          const rawRate = (recentAvgPpsf - olderAvgPpsf) / olderAvgPpsf / monthsGap;
-          // Cap at ±1% per month (12% annual) to avoid noise-driven extremes
-          monthlyAppreciation = Math.max(-0.01, Math.min(0.01, rawRate));
-        }
-      }
-
       const adjusted = arvComps.map(c => {
         const compPpsf = c.price / c.squareFootage;
         let w = (c.correlation != null && c.correlation > 0) ? c.correlation : 0.5;
@@ -207,13 +188,6 @@ export default async function handler(req, res) {
             reliable: true,
             isSelfComp: true
           };
-        }
-
-        // --- TIME ADJUSTMENT (apply first, per Fannie Mae guidelines) ---
-        // Adjust comp price to today's market based on derived appreciation rate
-        const monthsOld = (c.daysOld || 0) / 30;
-        if (monthsOld > 0.5 && monthlyAppreciation !== 0) {
-          totalAdj += c.price * monthlyAppreciation * monthsOld;
         }
 
         // --- GLA ADJUSTMENT (the 40% rule) ---

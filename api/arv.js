@@ -110,9 +110,6 @@ export default async function handler(req, res) {
 
     // Step 1: Start with comps that have valid price and sqft
     let arvComps = tierComps.filter(c => c.price > 0 && c.squareFootage > 0);
-    const debugStep1 = arvComps.length;
-    const debugTotalComps = tierComps.length;
-    const debugCompsWithSqft = tierComps.filter(c => c.squareFootage > 0).length;
 
     // Step 2: Exclude new construction
     arvComps = arvComps.filter(c => {
@@ -267,8 +264,7 @@ export default async function handler(req, res) {
       arvHigh: arvHigh,
       arvPricePerSqft: arvPricePerSqft,
       arvCompsUsed: arvCompsUsed,
-      medianPricePerSqft: typeof medianPpsf !== 'undefined' ? medianPpsf : null,
-      _debug: { totalComps: debugTotalComps, withSqft: debugCompsWithSqft, afterStep1: debugStep1, subjectSqft: subjectSqft, arvCompsAfterFilters: arvComps.length }
+      medianPricePerSqft: typeof medianPpsf !== 'undefined' ? medianPpsf : null
     });
   } catch (e) {
     return res.status(500).json({ error: 'Failed to fetch ARV' });

@@ -71,10 +71,16 @@ export default async function handler(req, res) {
       compTier = { daysWindow: 365, radiusMiles: 5 };
     }
 
+    // Determine subject year built for filtering
+    const subjectYear = (data.subjectProperty && data.subjectProperty.yearBuilt)
+      ? data.subjectProperty.yearBuilt : null;
+
     // Rentcast pre-sorts by correlation (similarity) descending, keep that order, cap at 5
     // But first filter out new construction from display comps too
     const displayComps = tierComps.filter(c => {
       if (c.listingType && c.listingType.toLowerCase().includes('new construction')) return false;
+      // Also exclude comps built 25+ years newer than subject
+      if (subjectYear && c.yearBuilt && (c.yearBuilt - subjectYear > 25)) return false;
       return true;
     });
     const finalComps = displayComps.slice(0, 5).map(c => ({
@@ -128,6 +134,23 @@ export default async function handler(req, res) {
       if (c.listingType && c.listingType.toLowerCase().includes('new construction')) return false;
       return true;
     });
+
+    // Step 2a: Exclude comps built significantly newer than the subject
+    // A 1960s house should not be compared to a 2020 new build even if same size/beds/baths
+    if (subjectYear) {
+      const yearFiltered = arvComps.filter(c => {
+        if (!c.yearBuilt) return true; // Keep comps with unknown year
+        const yearDiff = c.yearBuilt - subjectYear;
+        // Exclude comps built more than 25 years newer than subject
+        // (newer homes are a fundamentally different product)
+        // Allow older comps — a 1950s comp for a 1960s subject is fine
+        if (yearDiff > 25) return false;
+        return true;
+      });
+      if (yearFiltered.length >= 3) {
+        arvComps = yearFiltered;
+      }
+    }
 
     // Step 2b: Exclude price outliers
     // A comp at $499K when others cluster around $200-300K is a different tier of property

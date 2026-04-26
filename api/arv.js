@@ -242,6 +242,22 @@ export default async function handler(req, res) {
           // Skip adjustment when both >= 3 (absorbed by GLA)
         }
 
+        // --- AGE / YEAR BUILT ADJUSTMENT ---
+        // Newer homes sell for more purely due to age (newer systems, layout, efficiency)
+        // Only adjust when gap exceeds 10 years to avoid noise
+        // Rate: 0.2% of comp price per year of difference
+        // If subject is OLDER than comp, comp price is adjusted DOWN
+        // (subject would sell for less than a newer comp, all else equal)
+        if (subjectYear && c.yearBuilt) {
+          const ageDiff = c.yearBuilt - subjectYear; // positive = comp is newer
+          if (Math.abs(ageDiff) > 10) {
+            const ageRate = c.price * 0.002; // 0.2% per year
+            // Cap at 20 years of adjustment (4% max) to avoid overcorrecting
+            const cappedDiff = Math.max(-20, Math.min(20, ageDiff));
+            totalAdj -= cappedDiff * ageRate; // subtract because newer comp = inflate, so adjust down
+          }
+        }
+
         // --- COMPLIANCE CHECK ---
         // Flag comps with gross adjustment > 25% (FHA/lender threshold)
         const grossPct = Math.abs(totalAdj) / c.price;

@@ -152,6 +152,21 @@ export default async function handler(req, res) {
       }
     }
 
+    // Step 2b: Exclude extreme price outliers
+    // Only catches truly extreme cases (3x median) — lighter touch than before
+    // to avoid removing legitimate high-value comps in thin markets
+    if (arvComps.length >= 4) {
+      const sortedPrices = arvComps.map(c => c.price).sort((a, b) => a - b);
+      const mid = Math.floor(sortedPrices.length / 2);
+      const medianPrice = sortedPrices.length % 2 === 0
+        ? (sortedPrices[mid - 1] + sortedPrices[mid]) / 2
+        : sortedPrices[mid];
+      const priceFiltered = arvComps.filter(c => c.price >= medianPrice * 0.33 && c.price <= medianPrice * 3.0);
+      if (priceFiltered.length >= 3) {
+        arvComps = priceFiltered;
+      }
+    }
+
     // Step 3: Exclude comps outside ±25% sqft of subject (if we know subject sqft)
     // Slightly wider than before (25% vs 20%) because adjustments handle the difference
     if (subjectSqft) {

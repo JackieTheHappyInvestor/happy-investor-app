@@ -291,20 +291,42 @@ export default async function handler(req, res) {
         }
       }
 
-      // For ARV: use the 65th percentile of adjusted prices
-      // This biases toward higher (renovated) comps without overcorrecting
-      // The adjustments already normalized for size/bed/bath/age,
-      // so remaining variation above median is primarily CONDITION
-      let cumWArv = 0;
-      let arvTarget = adjusted[adjusted.length - 1].adjustedPrice;
-      for (let i = 0; i < adjusted.length; i++) {
-        cumWArv += adjusted[i].weight;
-        if (cumWArv >= totalWeight * 0.65) {
-          arvTarget = adjusted[i].adjustedPrice;
-          break;
+      // For ARV: use hybrid approach depending on comp spread
+      // Tight spread (suburban) = 65th percentile works well
+      // Wide spread (cheap/thin markets) = top-3 comp average is more stable
+      const lowestAdj = adjusted[0].adjustedPrice;
+      const highestAdj = adjusted[adjusted.length - 1].adjustedPrice;
+      const spreadRatio = highestAdj / Math.max(lowestAdj, 1);
+
+      if (spreadRatio > 2.5 || adjusted.length <= 5) {
+        // WIDE SPREAD or THIN MARKET: use average of top 3 adjusted comps
+        // In thin markets, percentile math breaks down
+        // Top-3 average approximates what a realtor does: pick the best comps
+        const top3 = adjusted.slice(-Math.min(3, adjusted.length));
+        const top3Avg = Math.round(top3.reduce((s, v) => s + v.adjustedPrice, 0) / top3.length);
+        // Apply 5% buffer (highest comp as ceiling minus conservative margin)
+        const ceilingEstimate = Math.round(highestAdj * 0.95);
+        // Use the lower of the two to stay conservative
+        estimatedARV = Math.min(top3Avg, ceilingEstimate);
+      } else {
+        // TIGHT SPREAD: 65th percentile works well for suburban markets
+        let cumWArv = 0;
+        let arvTarget = adjusted[adjusted.length - 1].adjustedPrice;
+        for (let i = 0; i < adjusted.length; i++) {
+          cumWArv += adjusted[i].weight;
+          if (cumWArv >= totalWeight * 0.65) {
+            arvTarget = adjusted[i].adjustedPrice;
+            break;
+          }
         }
+        estimatedARV = arvTarget;
       }
-      estimatedARV = arvTarget;
+
+      // BRACKET VALIDATION (Fannie Mae 1004 rule):
+      // ARV can never exceed the highest adjusted comp price
+      if (estimatedARV > highestAdj) {
+        estimatedARV = highestAdj;
+      }
 
       // Compute $/sqft for display
       if (estimatedARV && targetSqft) {
@@ -330,20 +352,16 @@ export default async function handler(req, res) {
       // Ensure range makes sense
       if (arvLow > estimatedARV) arvLow = estimatedARV;
       if (arvHigh < estimatedARV) arvHigh = estimatedARV;
-      if (arvLow < asIsValue) arvLow = asIsValue;
 
       // Median ppsf for display
       var medianPpsf = targetSqft ? Math.round(medianAdjPrice / targetSqft) : null;
     }
 
-    // ARV must never be lower than as-is value
-    // If calculation produces a lower number, show just the as-is
-    if (estimatedARV && asIsValue && estimatedARV <= asIsValue) {
-      estimatedARV = null;
-      arvLow = null;
-      arvHigh = null;
-      arvPricePerSqft = null;
-      arvCompsUsed = 0;
+    // Flag when ARV is below as-is (don't hide it — it's useful info)
+    // This signals over-improvement risk, declining market, or thin comp pool
+    var arvBelowAsIs = false;
+    if (estimatedARV && asIsValue && estimatedARV < asIsValue) {
+      arvBelowAsIs = true;
     }
 
     return res.status(200).json({
@@ -359,6 +377,7 @@ export default async function handler(req, res) {
       arvHigh: arvHigh,
       arvPricePerSqft: arvPricePerSqft,
       arvCompsUsed: arvCompsUsed,
+      arvBelowAsIs: arvBelowAsIs,
       medianPricePerSqft: typeof medianPpsf !== 'undefined' ? medianPpsf : null
     });
   } catch (e) {

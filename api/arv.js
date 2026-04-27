@@ -244,13 +244,13 @@ export default async function handler(req, res) {
 
         // --- AGE / YEAR BUILT ADJUSTMENT ---
         // Newer homes sell for more purely due to age (newer systems, layout, efficiency)
-        // Only adjust when gap exceeds 10 years to avoid noise
+        // Only adjust when gap exceeds 15 years to avoid noise
         // Rate: 0.2% of comp price per year of difference
         // If subject is OLDER than comp, comp price is adjusted DOWN
         // (subject would sell for less than a newer comp, all else equal)
         if (subjectYear && c.yearBuilt) {
           const ageDiff = c.yearBuilt - subjectYear; // positive = comp is newer
-          if (Math.abs(ageDiff) > 10) {
+          if (Math.abs(ageDiff) > 15) {
             const ageRate = c.price * 0.002; // 0.2% per year
             // Cap at 20 years of adjustment (4% max) to avoid overcorrecting
             const cappedDiff = Math.max(-20, Math.min(20, ageDiff));
@@ -291,22 +291,20 @@ export default async function handler(req, res) {
         }
       }
 
-      // For ARV: take the upper half of adjusted prices (represents renovated condition)
-      // The adjustments normalized for size/bed/bath, so remaining variation is CONDITION
-      const upperHalf = adjusted.filter(v => v.adjustedPrice >= medianAdjPrice);
-      if (upperHalf.length >= 1) {
-        const upperWeightSum = upperHalf.reduce((s, v) => s + v.weight, 0);
-        let upperCumW = 0;
-        let medianUpperPrice = upperHalf[Math.floor(upperHalf.length / 2)].adjustedPrice;
-        for (let i = 0; i < upperHalf.length; i++) {
-          upperCumW += upperHalf[i].weight;
-          if (upperCumW >= upperWeightSum * 0.5) {
-            medianUpperPrice = upperHalf[i].adjustedPrice;
-            break;
-          }
+      // For ARV: use the 65th percentile of adjusted prices
+      // This biases toward higher (renovated) comps without overcorrecting
+      // The adjustments already normalized for size/bed/bath/age,
+      // so remaining variation above median is primarily CONDITION
+      let cumWArv = 0;
+      let arvTarget = adjusted[adjusted.length - 1].adjustedPrice;
+      for (let i = 0; i < adjusted.length; i++) {
+        cumWArv += adjusted[i].weight;
+        if (cumWArv >= totalWeight * 0.65) {
+          arvTarget = adjusted[i].adjustedPrice;
+          break;
         }
-        estimatedARV = medianUpperPrice;
       }
+      estimatedARV = arvTarget;
 
       // Compute $/sqft for display
       if (estimatedARV && targetSqft) {

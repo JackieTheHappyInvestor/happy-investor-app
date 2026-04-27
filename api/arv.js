@@ -356,11 +356,15 @@ export default async function handler(req, res) {
       var medianPpsf = targetSqft ? Math.round(medianAdjPrice / targetSqft) : null;
     }
 
-    // Flag when ARV is below as-is (don't hide it — it's useful info)
-    // This signals over-improvement risk, declining market, or thin comp pool
-    var arvBelowAsIs = false;
+    // ARV should never be lower than as-is value for an investor tool
+    // When calculation produces lower, clamp to as-is with a note
+    var arvLimitedUpside = false;
     if (estimatedARV && asIsValue && estimatedARV < asIsValue) {
-      arvBelowAsIs = true;
+      estimatedARV = asIsValue;
+      arvLimitedUpside = true;
+      if (targetSqft) arvPricePerSqft = Math.round(asIsValue / targetSqft);
+      if (arvLow && arvLow < asIsValue) arvLow = asIsValue;
+      if (arvHigh && arvHigh < asIsValue) arvHigh = asIsValue;
     }
 
     return res.status(200).json({
@@ -376,7 +380,7 @@ export default async function handler(req, res) {
       arvHigh: arvHigh,
       arvPricePerSqft: arvPricePerSqft,
       arvCompsUsed: arvCompsUsed,
-      arvBelowAsIs: arvBelowAsIs,
+      arvLimitedUpside: arvLimitedUpside,
       medianPricePerSqft: typeof medianPpsf !== 'undefined' ? medianPpsf : null
     });
   } catch (e) {

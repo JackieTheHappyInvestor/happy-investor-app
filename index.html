@@ -957,8 +957,8 @@ function findARV(){
     if(hasARV){
       html+='<div class="arv-lbl">Estimated After-Repair Value (ARV)</div>';
       html+='<div class="arv-value">'+fmt(d.estimatedARV)+'</div>';
-      if(d.arvBelowAsIs){
-        html+='<div style="background:#FFF3CD;border:1px solid #FFEAA0;border-radius:10px;padding:10px 14px;margin:8px 0;font-size:12px;color:#856404;line-height:1.5"><strong>Note:</strong> The estimated ARV is below the as-is value. This may indicate limited renovation upside in this area, or that the comp pool does not fully reflect post-renovation pricing. Consider a local realtor CMA for a more precise ARV.</div>';
+      if(d.arvLimitedUpside){
+        html+='<div class="arv-note">Limited renovation upside in this area based on recent comparable sales.</div>';
       }else if(d.arvLow&&d.arvHigh&&d.arvLow!==d.arvHigh){
         html+='<div class="arv-note">Range: '+fmt(d.arvLow)+' — '+fmt(d.arvHigh)+'</div>';
       }else{

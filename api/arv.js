@@ -298,12 +298,15 @@ export default async function handler(req, res) {
       const highestAdj = adjusted[adjusted.length - 1].adjustedPrice;
       const spreadRatio = highestAdj / Math.max(lowestAdj, 1);
 
-      if (spreadRatio > 2.5 || adjusted.length <= 5) {
-        // WIDE SPREAD or THIN MARKET: use highest adjusted comp × 0.95
-        // In thin markets, the highest comp represents the best recent sale
-        // which is the closest proxy for what a renovated home would sell for
-        // The 5% buffer keeps it conservative
-        estimatedARV = Math.round(highestAdj * 0.95);
+      if (spreadRatio > 2.5) {
+        // WIDE SPREAD (thin/messy market): use highest RAW comp × 0.95
+        // In these markets, adjustments add noise because the comp pool is too
+        // heterogeneous. The highest comp represents the best recent sale,
+        // which is the closest proxy for post-renovation value.
+        // Use RAW price (not adjusted) because adjustments normalize to subject's
+        // current condition, but ARV needs to reflect RENOVATED condition.
+        const highestRaw = Math.max(...arvComps.map(c => c.price));
+        estimatedARV = Math.round(highestRaw * 0.95);
       } else {
         // TIGHT SPREAD: 65th percentile works well for suburban markets
         let cumWArv = 0;
@@ -316,12 +319,12 @@ export default async function handler(req, res) {
           }
         }
         estimatedARV = arvTarget;
-      }
 
-      // BRACKET VALIDATION (Fannie Mae 1004 rule):
-      // ARV can never exceed the highest adjusted comp price
-      if (estimatedARV > highestAdj) {
-        estimatedARV = highestAdj;
+        // BRACKET VALIDATION (Fannie Mae 1004 rule):
+        // ARV can never exceed the highest adjusted comp price
+        if (estimatedARV > highestAdj) {
+          estimatedARV = highestAdj;
+        }
       }
 
       // Compute $/sqft for display

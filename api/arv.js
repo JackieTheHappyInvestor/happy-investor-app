@@ -299,15 +299,11 @@ export default async function handler(req, res) {
       const spreadRatio = highestAdj / Math.max(lowestAdj, 1);
 
       if (spreadRatio > 2.5 || adjusted.length <= 5) {
-        // WIDE SPREAD or THIN MARKET: use average of top 3 adjusted comps
-        // In thin markets, percentile math breaks down
-        // Top-3 average approximates what a realtor does: pick the best comps
-        const top3 = adjusted.slice(-Math.min(3, adjusted.length));
-        const top3Avg = Math.round(top3.reduce((s, v) => s + v.adjustedPrice, 0) / top3.length);
-        // Apply 5% buffer (highest comp as ceiling minus conservative margin)
-        const ceilingEstimate = Math.round(highestAdj * 0.95);
-        // Use the lower of the two to stay conservative
-        estimatedARV = Math.min(top3Avg, ceilingEstimate);
+        // WIDE SPREAD or THIN MARKET: use highest adjusted comp × 0.95
+        // In thin markets, the highest comp represents the best recent sale
+        // which is the closest proxy for what a renovated home would sell for
+        // The 5% buffer keeps it conservative
+        estimatedARV = Math.round(highestAdj * 0.95);
       } else {
         // TIGHT SPREAD: 65th percentile works well for suburban markets
         let cumWArv = 0;

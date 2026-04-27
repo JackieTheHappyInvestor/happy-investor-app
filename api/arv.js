@@ -152,21 +152,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // Step 2b: Exclude price outliers
-    // A comp at $499K when others cluster around $200-300K is a different tier of property
-    // Exclude any comp whose price is more than 2x or less than 0.5x the median comp price
-    if (arvComps.length >= 4) {
-      const sortedPrices = arvComps.map(c => c.price).sort((a, b) => a - b);
-      const mid = Math.floor(sortedPrices.length / 2);
-      const medianPrice = sortedPrices.length % 2 === 0
-        ? (sortedPrices[mid - 1] + sortedPrices[mid]) / 2
-        : sortedPrices[mid];
-      const priceFiltered = arvComps.filter(c => c.price >= medianPrice * 0.5 && c.price <= medianPrice * 2.0);
-      if (priceFiltered.length >= 3) {
-        arvComps = priceFiltered;
-      }
-    }
-
     // Step 3: Exclude comps outside ±25% sqft of subject (if we know subject sqft)
     // Slightly wider than before (25% vs 20%) because adjustments handle the difference
     if (subjectSqft) {

@@ -1286,14 +1286,6 @@ async function loadUser(){
     currentUser=ur.data.user;
     var pr=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
     if(pr.data)currentProfile=pr.data;
-    if(pr.data&&pr.data.session_id){
-      var localSid=null;
-      try{localSid=localStorage.getItem('happy-investor-session-id');}catch(e){}
-      if(!localSid||localSid!==pr.data.session_id){
-        await kickSession();
-        return;
-      }
-    }
     var sr=await sb.from('subscriptions').select('*').eq('user_id',currentUser.id).single();
     if(sr.data){isSubscribed=(sr.data.status==='active'||sr.data.status==='trialing');}
     updateUserBar();

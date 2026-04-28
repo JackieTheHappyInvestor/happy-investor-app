@@ -271,7 +271,7 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 </div>
 <div class="tagline" id="app-tagline" style="display:none">Real Estate Investing Simplified • Jackie The Happy Investor Method™</div>
 
-<div class="user-bar" id="user-bar">
+<div class="user-bar" id="user-bar" style="visibility:hidden">
   <div class="ub-left" id="ub-guest">
     <span style="color:#6B6B6B">Guest</span>
   </div>
@@ -866,7 +866,7 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 var SUPABASE_URL='https://bpvxfchfzolbczpvlqpo.supabase.co';
 var SUPABASE_KEY='sb_publishable_TdiZtjzvQGcTfZb18-b0VA_2obGwmkB';
 var sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-var currentUser=null,currentProfile=null,isSubscribed=false;
+var currentUser=null,currentProfile=null,isSubscribed=false,authReady=false,pendingNav=null;
 var arv=0,vendors=[],cf='all',knowOpen=false,showAll=false;
 var vt={realtor:'investor friendly real estate agent',lender:'private money lender for real estate investors',dscr:'DSCR loan mortgage broker non-QM investor',title:'title insurance company real estate closing',contractor:'licensed general contractor home renovation',accountant:'CPA accountant real estate investor taxes',attorney:'real estate attorney closing contracts',flatfee:'flat fee MLS listing service for sale by owner'};
 var vi={realtor:'🏡',lender:'💰',dscr:'🏦',title:'📋',contractor:'🔨',accountant:'🧮',attorney:'⚖️',flatfee:'🏷️'};
@@ -876,6 +876,7 @@ var vc={realtor:'#fff0f5',lender:'#fffcf0',dscr:'#f0fbff',title:'#f5f0ff',contra
 function go(n){
   var protectedScreens=['deal','team','history'];
   if(protectedScreens.indexOf(n)>-1){
+    if(!authReady){pendingNav=n;return;} // Wait for auth to load
     if(!currentUser){go('auth');return;}
     if(!isSubscribed){go('pricing');return;}
   }
@@ -1281,7 +1282,7 @@ if(r.error){
 async function loadUser(){
   try{
     var ur=await sb.auth.getUser();
-    if(!ur.data||!ur.data.user){currentUser=null;currentProfile=null;isSubscribed=false;updateUserBar();return;}
+    if(!ur.data||!ur.data.user){currentUser=null;currentProfile=null;isSubscribed=false;updateUserBar();authReady=true;if(pendingNav){var pn=pendingNav;pendingNav=null;go(pn);}return;}
     currentUser=ur.data.user;
     var pr=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
     if(pr.data)currentProfile=pr.data;
@@ -1296,7 +1297,9 @@ async function loadUser(){
     var sr=await sb.from('subscriptions').select('*').eq('user_id',currentUser.id).single();
     if(sr.data){isSubscribed=(sr.data.status==='active'||sr.data.status==='trialing');}
     updateUserBar();
-  }catch(e){console.error('loadUser error',e);}
+    authReady=true;
+    if(pendingNav){var pn=pendingNav;pendingNav=null;go(pn);}
+  }catch(e){console.error('loadUser error',e);authReady=true;if(pendingNav){var pn=pendingNav;pendingNav=null;go(pn);}}
 }
 
 function updateUserBar(){
@@ -1325,6 +1328,7 @@ function updateUserBar(){
     logoutBtn.style.display='none';
     if(manageBtn)manageBtn.style.display='none';
   }
+  var ub=document.getElementById('user-bar');if(ub)ub.style.visibility='visible';
 }
 
 async function startSubscribe(plan){

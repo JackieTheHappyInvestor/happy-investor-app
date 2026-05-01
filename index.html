@@ -1210,6 +1210,14 @@ if(r.error){
       try{localStorage.setItem('happy-investor-session-id',sid);}catch(e){}
     }
     await loadUser();
+    // Track referral if user came via a referral link
+    try{
+      var refCode=localStorage.getItem('happy-investor-ref');
+      if(refCode&&r.data&&r.data.user){
+        fetch('/api/affiliate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'track',ref_code:refCode,user_id:r.data.user.id,referred_email:em})});
+        localStorage.removeItem('happy-investor-ref');
+      }
+    }catch(e){console.error('referral track error',e);}
     btn.disabled=false;btn.textContent='Create account';
     go('pricing');
   }catch(e){showErr('signup-err','Something went wrong. Please try again.');btn.disabled=false;btn.textContent='Create account';}
@@ -1406,6 +1414,18 @@ window.addEventListener('pageshow',function(e){
     if(ba){ba.disabled=false;ba.textContent='Start Now — $297/yr';}
   }
 });
+// Capture referral code from URL (?ref=CODE)
+(function(){
+  try{
+    var params=new URLSearchParams(window.location.search);
+    var ref=params.get('ref');
+    if(ref){
+      localStorage.setItem('happy-investor-ref',ref.toUpperCase());
+      var clean=window.location.pathname+window.location.hash;
+      window.history.replaceState(null,'',clean);
+    }
+  }catch(e){}
+})();
 loadUser();
 </script>
 

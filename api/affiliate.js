@@ -28,15 +28,7 @@ module.exports = async function handler(req, res) {
     if (action === 'get-or-create') {
       if (!user_id) return res.status(400).json({ error: 'user_id required' });
 
-      // Check if user already has a referral code
-      const { data: existing } = await sb
-        .from('referrals')
-        .select('referral_code')
-        .eq('referrer_id', user_id)
-        .eq('status', 'pending')
-        .limit(1);
-
-      // Find any code this user owns (could be in any status)
+      // Find any code this user owns
       const { data: anyCode } = await sb
         .from('referrals')
         .select('referral_code')

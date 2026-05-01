@@ -885,7 +885,7 @@ var vl={realtor:'Realtor',lender:'Hard Money Lender',dscr:'DSCR Lender',title:'T
 var vc={realtor:'#fff0f5',lender:'#fffcf0',dscr:'#f0fbff',title:'#f5f0ff',contractor:'#f0fff5',accountant:'#fff8f0',attorney:'#f5f5ff',flatfee:'#f0fff8'};
 
 function go(n){
-  var protectedScreens=['deal','team','history'];
+  var protectedScreens=['deal','team','history','affiliate'];
   if(protectedScreens.indexOf(n)>-1){
     if(!authReady){pendingNav=n;return;} // Wait for auth to load
     if(!currentUser){go('auth');return;}
@@ -1262,8 +1262,8 @@ if(r.error){
     try{
       var refCode=localStorage.getItem('happy-investor-ref');
       if(refCode&&r.data&&r.data.user){
-        fetch('/api/affiliate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'track',ref_code:refCode,user_id:r.data.user.id,referred_email:em})});
-        localStorage.removeItem('happy-investor-ref');
+        var trackRes=await fetch('/api/affiliate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'track',ref_code:refCode,user_id:r.data.user.id,referred_email:em})});
+        if(trackRes.ok){localStorage.removeItem('happy-investor-ref');}
       }
     }catch(e){console.error('referral track error',e);}
     btn.disabled=false;btn.textContent='Create account';

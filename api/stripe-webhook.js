@@ -110,6 +110,25 @@ export default async function handler(req, res) {
         stripe_subscription_id: subscriptionId,
         updated_at: new Date().toISOString()
       });
+      // Credit referrer if this user was referred
+      try {
+        const refCheck = await fetch(
+          `${process.env.SUPABASE_URL}/rest/v1/referrals?referred_user_id=eq.${encodeURIComponent(userId)}&status=eq.signed_up&select=id`,
+          {
+            headers: {
+              'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY,
+              'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
+            }
+          }
+        );
+        const refRows = await refCheck.json();
+        if (refRows && refRows.length > 0) {
+          await supabasePatch('referrals', 'id', refRows[0].id, {
+            status: 'subscribed',
+            converted_at: new Date().toISOString()
+          });
+        }
+      } catch (refErr) { console.error('referral credit error', refErr); }
     } else if (type === 'customer.subscription.updated') {
       // Subscription state changed (renewal, plan change, status change). Sync.
       const userId = obj.metadata && obj.metadata.user_id;

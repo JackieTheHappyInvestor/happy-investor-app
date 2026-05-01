@@ -612,26 +612,37 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
         <div style="font-size:14px;color:rgba(255,255,255,0.9);line-height:1.7;margin-bottom:20px;font-weight:300">Every time someone signs up using your link you earn $10 straight to your pocket. No limit on how many people you can refer!</div>
         <div style="background:#FFC247;border-radius:14px;padding:16px;margin-bottom:12px">
           <div style="font-size:12px;font-weight:600;color:#7a5200;margin-bottom:4px">YOUR AFFILIATE LINK</div>
-          <div style="font-size:13px;color:#1A1A1A;font-weight:300;font-style:italic">Coming soon — join the waitlist below!</div>
+          <div id="aff-link-display" style="font-size:13px;color:#1A1A1A;font-weight:500;word-break:break-all">Loading...</div>
         </div>
+        <button onclick="copyAffLink()" style="background:#fff;color:#1A1A1A;border:none;border-radius:10px;padding:12px 24px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif" id="aff-copy-btn">Copy Link</button>
       </div>
       <div style="background:#fff;border-radius:18px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,0.06);margin-bottom:16px">
-        <div style="font-size:16px;font-weight:600;color:#1A1A1A;margin-bottom:6px">Join the Affiliate Waitlist</div>
-        <div style="font-size:13px;color:#6B6B6B;margin-bottom:18px;font-weight:300">Be first to get your unique link when we launch the affiliate program!</div>
-        <div style="margin-bottom:12px">
-          <input style="width:100%;border:1px solid #E5E5E5;border-radius:12px;padding:14px;font-size:15px;font-family:&#39;Inter&#39;,sans-serif;font-weight:300;outline:none" type="text" placeholder="Your name">
+        <div style="font-size:16px;font-weight:600;color:#1A1A1A;margin-bottom:16px">Your Earnings Dashboard</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="background:#f8f8f8;border-radius:12px;padding:16px;text-align:center">
+            <div style="font-size:24px;font-weight:700;color:#1A1A1A" id="aff-signups">0</div>
+            <div style="font-size:11px;color:#999;font-weight:300;margin-top:4px">Signups</div>
+          </div>
+          <div style="background:#f8f8f8;border-radius:12px;padding:16px;text-align:center">
+            <div style="font-size:24px;font-weight:700;color:#1A1A1A" id="aff-subscribed">0</div>
+            <div style="font-size:11px;color:#999;font-weight:300;margin-top:4px">Subscribed</div>
+          </div>
+          <div style="background:#f8f8f8;border-radius:12px;padding:16px;text-align:center">
+            <div style="font-size:24px;font-weight:700;color:#00C853" id="aff-earned">$0</div>
+            <div style="font-size:11px;color:#999;font-weight:300;margin-top:4px">Total Earned</div>
+          </div>
+          <div style="background:#f8f8f8;border-radius:12px;padding:16px;text-align:center">
+            <div style="font-size:24px;font-weight:700;color:#FFC247" id="aff-pending">$0</div>
+            <div style="font-size:11px;color:#999;font-weight:300;margin-top:4px">Pending Payout</div>
+          </div>
         </div>
-        <div style="margin-bottom:16px">
-          <input style="width:100%;border:1px solid #E5E5E5;border-radius:12px;padding:14px;font-size:15px;font-family:&#39;Inter&#39;,sans-serif;font-weight:300;outline:none" type="email" placeholder="Your email address">
-        </div>
-        <button class="btn btn-pink" onclick="joinWaitlist()">Count Me In!</button>
       </div>
       <div style="background:#1A1A1A;border-radius:18px;padding:24px;text-align:center">
         <div style="font-size:16px;font-weight:600;color:#FFC247;margin-bottom:8px">How It Works</div>
         <div style="display:flex;flex-direction:column;gap:14px;margin-top:16px">
           <div style="display:flex;align-items:center;gap:14px;text-align:left">
             <div style="width:36px;height:36px;border-radius:50%;background:#FF1A8C;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0">1</div>
-            <div style="font-size:13px;color:rgba(255,255,255,0.8);font-weight:300">Get your unique link and share it with friends, followers, or students</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.8);font-weight:300">Copy your unique link above and share it with friends, followers, or students</div>
           </div>
           <div style="display:flex;align-items:center;gap:14px;text-align:left">
             <div style="width:36px;height:36px;border-radius:50%;background:#FFC247;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#1A1A1A;flex-shrink:0">2</div>
@@ -893,6 +904,7 @@ function go(n){
   if(header)header.style.display=(n==='home')?'none':'block';
   if(tagline)tagline.style.display=(n==='home')?'none':'block';
   if(n==='history')renderHistory();
+  if(n==='affiliate')loadAffiliateDashboard();
   window.scrollTo(0,0);
 }
 
@@ -1110,8 +1122,44 @@ function shareResult(){
   else{navigator.clipboard.writeText(text).then(function(){alert('Deal result copied! Paste it anywhere to share.');});}
 }
 
-function joinWaitlist(){
-  alert('You are on the list! We will email you as soon as your affiliate link is ready.');
+var affCode=null;
+async function loadAffiliateDashboard(){
+  if(!currentUser)return;
+  try{
+    // Get or create referral code
+    var fn=currentProfile&&currentProfile.first_name?currentProfile.first_name:'USER';
+    var r=await fetch('/api/affiliate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'get-or-create',user_id:currentUser.id,user_name:fn})});
+    var d=await r.json();
+    if(d.referral_code){
+      affCode=d.referral_code;
+      var link=window.location.origin+'/?ref='+affCode;
+      var el=document.getElementById('aff-link-display');
+      if(el)el.textContent=link;
+    }
+    // Load dashboard stats
+    var sr=await fetch('/api/affiliate?action=dashboard&user_id='+currentUser.id);
+    var sd=await sr.json();
+    if(sd.stats){
+      var s=sd.stats;
+      var el1=document.getElementById('aff-signups');if(el1)el1.textContent=s.signed_up||0;
+      var el2=document.getElementById('aff-subscribed');if(el2)el2.textContent=s.subscribed||0;
+      var el3=document.getElementById('aff-earned');if(el3)el3.textContent='$'+(s.earned||0);
+      var el4=document.getElementById('aff-pending');if(el4)el4.textContent='$'+((s.earned||0)-(s.paid_out||0));
+    }
+  }catch(e){console.error('affiliate dashboard error',e);}
+}
+function copyAffLink(){
+  if(!affCode)return;
+  var link=window.location.origin+'/?ref='+affCode;
+  navigator.clipboard.writeText(link).then(function(){
+    var btn=document.getElementById('aff-copy-btn');
+    if(btn){btn.textContent='Copied!';setTimeout(function(){btn.textContent='Copy Link';},2000);}
+  }).catch(function(){
+    // Fallback for older browsers
+    var ta=document.createElement('textarea');ta.value=link;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    var btn=document.getElementById('aff-copy-btn');
+    if(btn){btn.textContent='Copied!';setTimeout(function(){btn.textContent='Copy Link';},2000);}
+  });
 }
 
 function saveToHistory(addr,arv,total,isDeal){

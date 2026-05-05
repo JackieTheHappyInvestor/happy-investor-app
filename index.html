@@ -899,7 +899,7 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 <script>
 var SUPABASE_URL='https://bpvxfchfzolbczpvlqpo.supabase.co';
 var SUPABASE_KEY='sb_publishable_TdiZtjzvQGcTfZb18-b0VA_2obGwmkB';
-var sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+var sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'happy-investor-auth'}});
 var currentUser=null,currentProfile=null,isSubscribed=false,authReady=false,pendingNav=null;
 var arv=0,vendors=[],cf='all',knowOpen=false,showAll=false;
 var vt={realtor:'investor friendly real estate agent',lender:'private money lender for real estate investors',dscr:'DSCR loan mortgage broker non-QM investor',title:'title insurance company real estate closing',contractor:'licensed general contractor home renovation',accountant:'CPA accountant real estate investor taxes',attorney:'real estate attorney closing contracts',flatfee:'flat fee MLS listing service for sale by owner'};

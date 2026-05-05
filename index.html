@@ -1432,9 +1432,11 @@ if(r.error){
 
 async function loadUser(){
   try{
-    var ur=await sb.auth.getUser();
-    if(!ur.data||!ur.data.user){currentUser=null;currentProfile=null;isSubscribed=false;updateUserBar();authReady=true;if(pendingNav){var pn=pendingNav;pendingNav=null;go(pn);}return;}
-    currentUser=ur.data.user;
+    // Use getSession first — it reads from localStorage and auto-refreshes expired tokens
+    // getUser() alone fails when the access token expires (every 1hr on free plan)
+    var sess=await sb.auth.getSession();
+    if(!sess.data||!sess.data.session){currentUser=null;currentProfile=null;isSubscribed=false;updateUserBar();authReady=true;if(pendingNav){var pn=pendingNav;pendingNav=null;go(pn);}return;}
+    currentUser=sess.data.session.user;
     var pr=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
     if(pr.data)currentProfile=pr.data;
     var sr=await sb.from('subscriptions').select('*').eq('user_id',currentUser.id).single();

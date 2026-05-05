@@ -1195,7 +1195,13 @@ async function sendJackieMsg(){
 
     var aiBubble=document.createElement('div');
     aiBubble.style.cssText='background:linear-gradient(135deg,#7C3AED,#FF1A8C);border-radius:16px 16px 16px 4px;padding:14px 18px;max-width:85%;color:#fff;font-size:14px;line-height:1.6;font-weight:300;white-space:pre-wrap';
-    aiBubble.textContent=reply;
+    // Basic markdown rendering for AI responses
+    var formatted = reply
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/^- /gm, '• ')
+      .replace(/\n/g, '<br>');
+    aiBubble.innerHTML = formatted;
     box.appendChild(aiBubble);
   }catch(e){
     var typingEl=document.getElementById('jackie-typing');

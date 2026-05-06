@@ -672,6 +672,13 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
       <div style="background:linear-gradient(135deg,#7C3AED,#FF1A8C);border-radius:16px 16px 16px 4px;padding:14px 18px;max-width:85%;color:#fff;font-size:14px;line-height:1.6;font-weight:300">
         Hey, I'm Jackie. Real estate investor, house flipper, and your new investing friend. Ask me anything or upload a property photo and I'll tell you what I think.
       </div>
+      <div id="jackie-prompts" style="display:flex;flex-wrap:wrap;gap:8px;padding:4px 0">
+        <button onclick="usePrompt(this,'What is the 70% rule?')" style="background:#f5f0ff;border:1px solid #e0d4f5;border-radius:20px;padding:8px 14px;font-size:12px;color:#7C3AED;cursor:pointer;font-family:'Inter',sans-serif;font-weight:400">What is the 70% rule?</button>
+        <button onclick="usePrompt(this,'How do I find my first deal?')" style="background:#f5f0ff;border:1px solid #e0d4f5;border-radius:20px;padding:8px 14px;font-size:12px;color:#7C3AED;cursor:pointer;font-family:'Inter',sans-serif;font-weight:400">How do I find my first deal?</button>
+        <button onclick="usePrompt(this,'How do I find a good contractor?')" style="background:#f5f0ff;border:1px solid #e0d4f5;border-radius:20px;padding:8px 14px;font-size:12px;color:#7C3AED;cursor:pointer;font-family:'Inter',sans-serif;font-weight:400">How do I find a good contractor?</button>
+        <button onclick="usePrompt(this,'What is the BRRRR strategy?')" style="background:#f5f0ff;border:1px solid #e0d4f5;border-radius:20px;padding:8px 14px;font-size:12px;color:#7C3AED;cursor:pointer;font-family:'Inter',sans-serif;font-weight:400">What is the BRRRR strategy?</button>
+        <button onclick="usePrompt(this,'How do I finance a deal with no money?')" style="background:#f5f0ff;border:1px solid #e0d4f5;border-radius:20px;padding:8px 14px;font-size:12px;color:#7C3AED;cursor:pointer;font-family:'Inter',sans-serif;font-weight:400">How do I finance with no money?</button>
+      </div>
     </div>
     <div style="padding:12px 16px 20px;border-top:1px solid #f0f0f0;background:#fff">
       <div style="display:flex;gap:8px;align-items:center">
@@ -932,6 +939,7 @@ function go(n){
   if(tagline)tagline.style.display=(n==='home')?'none':'block';
   if(n==='history')renderHistory();
   if(n==='affiliate')loadAffiliateDashboard();
+  if(n==='deal')resetDeal();
   window.scrollTo(0,0);
 }
 
@@ -1147,6 +1155,14 @@ function shareResult(){
   var text='I just analyzed '+addr+' using Jackie The Happy Investor app! Verdict: '+verdict+' See the numbers at '+appUrl+' — try it yourself!';
   if(navigator.share){navigator.share({title:'Jackie The Happy Investor',text:text,url:appUrl});}
   else{navigator.clipboard.writeText(text).then(function(){alert('Deal result copied! Paste it anywhere to share.');});}
+}
+
+// --- JACKIE AI SUGGESTED PROMPTS ---
+function usePrompt(btn,text){
+  document.getElementById('jackie-input').value=text;
+  var prompts=document.getElementById('jackie-prompts');
+  if(prompts)prompts.style.display='none';
+  sendJackieMsg();
 }
 
 // --- JACKIE AI PHOTO ANALYSIS ---

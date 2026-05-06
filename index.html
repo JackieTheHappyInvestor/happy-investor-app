@@ -261,6 +261,8 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
 .session-ended-wrap p{font-size:14px;color:#6B6B6B;font-weight:300;line-height:1.6;margin-bottom:24px}
 .session-ended-btn{display:block;width:100%;background:#FF1A8C;color:#fff;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 6px 20px rgba(255,26,140,0.3)}
 .session-ended-btn:active{transform:scale(0.99)}
+.typing-dots{animation:typingPulse 1.2s infinite}
+@keyframes typingPulse{0%,100%{opacity:0.3}50%{opacity:1}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
@@ -1233,7 +1235,6 @@ async function sendJackieMsg(){
   userBubble.textContent=msg;
   box.appendChild(userBubble);
 
-  // Clear input
   input.value='';
   input.disabled=true;
   btn.disabled=true;
@@ -1241,13 +1242,12 @@ async function sendJackieMsg(){
 
   // Show typing indicator
   var typing=document.createElement('div');
-  typing.style.cssText='background:linear-gradient(135deg,#7C3AED,#FF1A8C);border-radius:16px 16px 16px 4px;padding:14px 18px;max-width:85%;color:#fff;font-size:14px;line-height:1.6;font-weight:300';
-  typing.textContent='Jackie is thinking...';
+  typing.style.cssText='background:linear-gradient(135deg,#7C3AED,#FF1A8C);border-radius:16px 16px 16px 4px;padding:14px 18px;max-width:60px;color:#fff;font-size:14px;font-weight:300';
+  typing.innerHTML='<span class="typing-dots">•••</span>';
   typing.id='jackie-typing';
   box.appendChild(typing);
   box.scrollTop=box.scrollHeight;
 
-  // Add to history
   jackieHistory.push({role:'user',content:msg});
 
   try{
@@ -1259,23 +1259,26 @@ async function sendJackieMsg(){
     var d=await r.json();
     var reply=d.reply||'Sorry, something went wrong. Try again.';
 
-    // Add to history
     jackieHistory.push({role:'assistant',content:reply});
 
-    // Remove typing indicator and show reply
+    // Remove typing indicator
     var typingEl=document.getElementById('jackie-typing');
     if(typingEl)typingEl.remove();
 
-    var aiBubble=document.createElement('div');
-    aiBubble.style.cssText='background:linear-gradient(135deg,#7C3AED,#FF1A8C);border-radius:16px 16px 16px 4px;padding:14px 18px;max-width:85%;color:#fff;font-size:14px;line-height:1.6;font-weight:300;white-space:pre-wrap';
-    // Basic markdown rendering for AI responses
-    var formatted = reply
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/^- /gm, '• ')
-      .replace(/\n/g, '<br>');
-    aiBubble.innerHTML = formatted;
-    box.appendChild(aiBubble);
+    // Split response into chunks for natural texting feel
+    var chunks=reply.split(/\n\n+/).filter(function(c){return c.trim().length>0;});
+    if(chunks.length<=1){
+      // Single chunk - just show it
+      var aiBubble=document.createElement('div');
+      aiBubble.style.cssText='background:linear-gradient(135deg,#7C3AED,#FF1A8C);border-radius:16px 16px 16px 4px;padding:14px 18px;max-width:85%;color:#fff;font-size:14px;line-height:1.6;font-weight:300;white-space:pre-wrap';
+      var formatted=reply.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/^- /gm,'• ').replace(/\n/g,'<br>');
+      aiBubble.innerHTML=formatted;
+      box.appendChild(aiBubble);
+      box.scrollTop=box.scrollHeight;
+    }else{
+      // Multiple chunks - show with delays like texting
+      await showChunks(chunks,box);
+    }
   }catch(e){
     var typingEl=document.getElementById('jackie-typing');
     if(typingEl)typingEl.textContent='Sorry, something went wrong. Try again.';
@@ -1287,6 +1290,29 @@ async function sendJackieMsg(){
   btn.style.opacity='1';
   input.focus();
   box.scrollTop=box.scrollHeight;
+}
+
+async function showChunks(chunks,box){
+  for(var i=0;i<chunks.length;i++){
+    if(i>0){
+      // Show typing dots before next chunk
+      var dots=document.createElement('div');
+      dots.style.cssText='background:linear-gradient(135deg,#7C3AED,#FF1A8C);border-radius:16px 16px 16px 4px;padding:14px 18px;max-width:60px;color:#fff;font-size:14px;font-weight:300';
+      dots.innerHTML='<span class="typing-dots">•••</span>';
+      dots.id='jackie-chunk-typing';
+      box.appendChild(dots);
+      box.scrollTop=box.scrollHeight;
+      // Random delay between 600-1200ms
+      await new Promise(function(resolve){setTimeout(resolve,600+Math.random()*600);});
+      dots.remove();
+    }
+    var bubble=document.createElement('div');
+    bubble.style.cssText='background:linear-gradient(135deg,#7C3AED,#FF1A8C);border-radius:16px 16px 16px 4px;padding:14px 18px;max-width:85%;color:#fff;font-size:14px;line-height:1.6;font-weight:300;white-space:pre-wrap';
+    var formatted=chunks[i].trim().replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/^- /gm,'• ').replace(/\n/g,'<br>');
+    bubble.innerHTML=formatted;
+    box.appendChild(bubble);
+    box.scrollTop=box.scrollHeight;
+  }
 }
 
 var affCode=null;

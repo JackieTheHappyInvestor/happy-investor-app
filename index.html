@@ -1258,34 +1258,51 @@ async function sendJackieMsg(){
   jackieHistory.push({role:'user',content:msg});
 
   try{
-    var r=await fetch('/api/jackie-ai',{
+    var r=await fetch('/api/jackie-ai-stream',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({messages:jackieHistory})
     });
-    var d=await r.json();
-    var reply=d.reply||'Sorry, something went wrong. Try again.';
 
-    jackieHistory.push({role:'assistant',content:reply});
-
-    // Remove typing indicator
+    // Remove typing indicator and create response bubble
     var typingEl=document.getElementById('jackie-typing');
     if(typingEl)typingEl.remove();
 
-    // Split response into chunks for natural texting feel
-    var chunks=reply.split(/\n\n+/).filter(function(c){return c.trim().length>0;});
-    if(chunks.length<=1){
-      // Single chunk - just show it
-      var aiBubble=document.createElement('div');
-      aiBubble.style.cssText='background:linear-gradient(135deg,#7C3AED,#FF1A8C);border-radius:16px 16px 16px 4px;padding:14px 18px;max-width:85%;color:#fff;font-size:14px;line-height:1.6;font-weight:300;white-space:pre-wrap';
-      var formatted=reply.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/^- /gm,'• ').replace(/\n/g,'<br>');
-      aiBubble.innerHTML=formatted;
-      box.appendChild(aiBubble);
-      box.scrollTop=box.scrollHeight;
-    }else{
-      // Multiple chunks - show with delays like texting
-      await showChunks(chunks,box);
+    var aiBubble=document.createElement('div');
+    aiBubble.style.cssText='background:linear-gradient(135deg,#7C3AED,#FF1A8C);border-radius:16px 16px 16px 4px;padding:14px 18px;max-width:85%;color:#fff;font-size:14px;line-height:1.6;font-weight:300';
+    box.appendChild(aiBubble);
+
+    // Stream the response word by word
+    var reader=r.body.getReader();
+    var decoder=new TextDecoder();
+    var buffer='';
+    var fullText='';
+
+    while(true){
+      var result=await reader.read();
+      if(result.done)break;
+      buffer+=decoder.decode(result.value,{stream:true});
+      var events=buffer.split('\n\n');
+      buffer=events.pop();
+      for(var i=0;i<events.length;i++){
+        var evt=events[i].trim();
+        if(!evt.startsWith('data:'))continue;
+        var payload=evt.slice(5).trim();
+        if(payload==='[DONE]')break;
+        try{
+          var parsed=JSON.parse(payload);
+          if(parsed.text){
+            fullText+=parsed.text;
+            aiBubble.textContent=fullText;
+            box.scrollTop=box.scrollHeight;
+          }
+        }catch(e){}
+      }
     }
+
+    // Add to history
+    jackieHistory.push({role:'assistant',content:fullText});
+
   }catch(e){
     var typingEl=document.getElementById('jackie-typing');
     if(typingEl)typingEl.textContent='Sorry, something went wrong. Try again.';
@@ -1297,29 +1314,6 @@ async function sendJackieMsg(){
   btn.style.opacity='1';
   input.focus();
   box.scrollTop=box.scrollHeight;
-}
-
-async function showChunks(chunks,box){
-  for(var i=0;i<chunks.length;i++){
-    if(i>0){
-      // Show typing dots before next chunk
-      var dots=document.createElement('div');
-      dots.style.cssText='background:linear-gradient(135deg,#7C3AED,#FF1A8C);border-radius:16px 16px 16px 4px;padding:14px 18px;max-width:60px;color:#fff;font-size:14px;font-weight:300';
-      dots.innerHTML='<span class="typing-dots">•••</span>';
-      dots.id='jackie-chunk-typing';
-      box.appendChild(dots);
-      box.scrollTop=box.scrollHeight;
-      // Random delay between 600-1200ms
-      await new Promise(function(resolve){setTimeout(resolve,600+Math.random()*600);});
-      dots.remove();
-    }
-    var bubble=document.createElement('div');
-    bubble.style.cssText='background:linear-gradient(135deg,#7C3AED,#FF1A8C);border-radius:16px 16px 16px 4px;padding:14px 18px;max-width:85%;color:#fff;font-size:14px;line-height:1.6;font-weight:300;white-space:pre-wrap';
-    var formatted=chunks[i].trim().replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/^- /gm,'• ').replace(/\n/g,'<br>');
-    bubble.innerHTML=formatted;
-    box.appendChild(bubble);
-    box.scrollTop=box.scrollHeight;
-  }
 }
 
 var affCode=null;

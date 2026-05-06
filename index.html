@@ -673,6 +673,8 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
     </div>
     <div style="padding:12px 16px 20px;border-top:1px solid #f0f0f0;background:#fff">
       <div style="display:flex;gap:8px;align-items:center">
+        <input type="file" id="jackie-photo-input" accept="image/*" style="display:none" onchange="handleJackiePhoto(this)">
+        <button onclick="document.getElementById('jackie-photo-input').click()" style="background:#f0f0f0;color:#666;border:none;border-radius:50%;width:44px;height:44px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Upload property photo">📷</button>
         <input type="text" id="jackie-input" placeholder="Ask me anything about real estate..." style="flex:1;border:1px solid #E5E5E5;border-radius:24px;padding:12px 18px;font-size:14px;font-family:'Inter',sans-serif;font-weight:300;outline:none" onkeydown="if(event.key==='Enter')sendJackieMsg()">
         <button onclick="sendJackieMsg()" id="jackie-send-btn" style="background:#FF1A8C;color:#fff;border:none;border-radius:50%;width:44px;height:44px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">➤</button>
       </div>
@@ -1143,6 +1145,77 @@ function shareResult(){
   var text='I just analyzed '+addr+' using Jackie The Happy Investor app! Verdict: '+verdict+' See the numbers at '+appUrl+' — try it yourself!';
   if(navigator.share){navigator.share({title:'Jackie The Happy Investor',text:text,url:appUrl});}
   else{navigator.clipboard.writeText(text).then(function(){alert('Deal result copied! Paste it anywhere to share.');});}
+}
+
+// --- JACKIE AI PHOTO ANALYSIS ---
+async function handleJackiePhoto(fileInput){
+  var file=fileInput.files[0];
+  if(!file)return;
+  fileInput.value='';
+  var box=document.getElementById('jackie-chat-box');
+  var btn=document.getElementById('jackie-send-btn');
+  btn.disabled=true;btn.style.opacity='0.5';
+
+  // Resize image to max 1280px and convert to base64
+  var reader=new FileReader();
+  reader.onload=async function(e){
+    var img=new Image();
+    img.onload=async function(){
+      var canvas=document.createElement('canvas');
+      var maxSize=1280;
+      var w=img.width,h=img.height;
+      if(w>maxSize||h>maxSize){
+        if(w>h){h=Math.round(h*maxSize/w);w=maxSize;}
+        else{w=Math.round(w*maxSize/h);h=maxSize;}
+      }
+      canvas.width=w;canvas.height=h;
+      var ctx=canvas.getContext('2d');
+      ctx.drawImage(img,0,0,w,h);
+      var base64=canvas.toDataURL('image/jpeg',0.82);
+
+      // Show image in chat
+      var imgBubble=document.createElement('div');
+      imgBubble.style.cssText='max-width:85%;align-self:flex-end';
+      imgBubble.innerHTML='<img src="'+base64+'" style="border-radius:12px;max-width:100%;max-height:300px">';
+      box.appendChild(imgBubble);
+
+      // Show typing indicator
+      var typing=document.createElement('div');
+      typing.style.cssText='background:linear-gradient(135deg,#7C3AED,#FF1A8C);border-radius:16px 16px 16px 4px;padding:14px 18px;max-width:85%;color:#fff;font-size:14px;line-height:1.6;font-weight:300';
+      typing.textContent='Jackie is looking at this property...';
+      typing.id='jackie-typing';
+      box.appendChild(typing);
+      box.scrollTop=box.scrollHeight;
+
+      try{
+        var r=await fetch('/api/analyze-image',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({image:base64,message:'What do you think of this property? Analyze the condition and flag any rehab needs.'})
+        });
+        var d=await r.json();
+        var reply=d.reply||'Could not analyze this photo. Try a clearer image.';
+
+        var typingEl=document.getElementById('jackie-typing');
+        if(typingEl)typingEl.remove();
+
+        var aiBubble=document.createElement('div');
+        aiBubble.style.cssText='background:linear-gradient(135deg,#7C3AED,#FF1A8C);border-radius:16px 16px 16px 4px;padding:14px 18px;max-width:85%;color:#fff;font-size:14px;line-height:1.6;font-weight:300;white-space:pre-wrap';
+        var formatted=reply.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/^- /gm,'• ').replace(/\n/g,'<br>');
+        aiBubble.innerHTML=formatted;
+        box.appendChild(aiBubble);
+      }catch(e){
+        var typingEl=document.getElementById('jackie-typing');
+        if(typingEl)typingEl.textContent='Could not analyze this photo. Try again.';
+        console.error('Photo analysis error:',e);
+      }
+
+      btn.disabled=false;btn.style.opacity='1';
+      box.scrollTop=box.scrollHeight;
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 // --- JACKIE AI CHAT ---

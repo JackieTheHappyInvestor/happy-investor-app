@@ -133,10 +133,12 @@ export default async function handler(req, res) {
         'Authorization': 'Bearer ' + process.env.OPENAI_API_KEY
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-mini',
         messages: fullMessages,
         max_tokens: 400,
-        temperature: 0.8
+        temperature: 0.85,
+        frequency_penalty: 0.4,
+        presence_penalty: 0.3
       })
     });
 

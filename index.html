@@ -1503,7 +1503,10 @@ async function signIn(){
     // Handle keep me signed in
     var keepSignedIn=document.getElementById('keep-signed-in');
     if(keepSignedIn&&!keepSignedIn.checked){
-      window.addEventListener('beforeunload',function(){sb.auth.signOut();});
+      localStorage.setItem('happy-investor-keep','0');
+      sessionStorage.setItem('happy-investor-alive','1');
+    }else{
+      localStorage.setItem('happy-investor-keep','1');
     }
     await loadUser();
     btn.disabled=false;btn.textContent='Log in';
@@ -1557,8 +1560,13 @@ if(r.error){
 
 async function loadUser(){
   try{
+    // Check if user chose not to stay signed in and browser was closed
+    if(localStorage.getItem('happy-investor-keep')==='0'&&!sessionStorage.getItem('happy-investor-alive')){
+      await sb.auth.signOut();
+      localStorage.removeItem('happy-investor-keep');
+      currentUser=null;currentProfile=null;isSubscribed=false;updateUserBar();authReady=true;if(pendingNav){var pn=pendingNav;pendingNav=null;go(pn);}return;
+    }
     // Use getSession first — it reads from localStorage and auto-refreshes expired tokens
-    // getUser() alone fails when the access token expires (every 1hr on free plan)
     var sess=await sb.auth.getSession();
     if(!sess.data||!sess.data.session){currentUser=null;currentProfile=null;isSubscribed=false;updateUserBar();authReady=true;if(pendingNav){var pn=pendingNav;pendingNav=null;go(pn);}return;}
     currentUser=sess.data.session.user;

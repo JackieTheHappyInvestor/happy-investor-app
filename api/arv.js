@@ -43,6 +43,17 @@ export default async function handler(req, res) {
       }
     }
 
+    // Filter to SOLD comps only — exclude active/for-sale listings
+    // A comp with a removedDate was taken off market (likely sold)
+    // A comp with status containing 'sold' or 'closed' is confirmed sold
+    allComps = allComps.filter(c => {
+      if (c.status) {
+        var s = c.status.toLowerCase();
+        if (s.includes('active') || s.includes('for sale') || s.includes('pending')) return false;
+      }
+      return true;
+    });
+
     // Tier 1: 90 days within 1 mile
     let tierComps = allComps.filter(c => c.distance != null && c.distance <= 1 && c.daysOld != null && c.daysOld <= 90);
     let compTier = { daysWindow: 90, radiusMiles: 1 };

@@ -805,6 +805,10 @@ body{font-family:'Inter',sans-serif;font-weight:300;background:#F8F8F8;color:#1A
             <button type="button" class="pw-toggle" onclick="togglePw('login-password',this)">👁</button>
           </div>
         </div>
+        <div style="display:flex;align-items:center;gap:8px;margin:4px 0 8px">
+          <input type="checkbox" id="keep-signed-in" checked style="width:16px;height:16px;accent-color:#FF1A8C;cursor:pointer">
+          <label for="keep-signed-in" style="font-size:13px;color:#666;font-weight:300;cursor:pointer">Keep me signed in</label>
+        </div>
         <button class="auth-btn" id="login-btn" onclick="signIn()">Log in</button>
         <button class="auth-link" onclick="authTab('reset')">Forgot your password?</button>
       </div>
@@ -1495,6 +1499,11 @@ async function signIn(){
       var sid=newSessionId();
       try{await sb.from('profiles').update({session_id:sid}).eq('id',r.data.user.id);}catch(e){console.error('session write error',e);}
       try{localStorage.setItem('happy-investor-session-id',sid);}catch(e){}
+    }
+    // Handle keep me signed in
+    var keepSignedIn=document.getElementById('keep-signed-in');
+    if(keepSignedIn&&!keepSignedIn.checked){
+      window.addEventListener('beforeunload',function(){sb.auth.signOut();});
     }
     await loadUser();
     btn.disabled=false;btn.textContent='Log in';

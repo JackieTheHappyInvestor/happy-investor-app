@@ -158,7 +158,6 @@ export default async function handler(req, res) {
     }
     let arvPricePerSqft = null;
     let arvCompsUsed = 0;
-    let targetSqft = subjectSqft || null;
 
     // Determine subject attributes
     const subjectSqft = sqft != null
@@ -166,6 +165,7 @@ export default async function handler(req, res) {
       : (data.subjectProperty && data.subjectProperty.squareFootage
           ? data.subjectProperty.squareFootage
           : null);
+    let targetSqft = subjectSqft || null;
     const subjectBeds = beds != null
       ? beds
       : (data.subjectProperty && data.subjectProperty.bedrooms

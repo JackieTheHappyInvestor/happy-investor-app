@@ -145,6 +145,17 @@ export default async function handler(req, res) {
     let arvLow = null;
     let arvHigh = null;
     let asIsValue = data.price || 0;
+
+    // If Rentcast has no base price but we have comps, use median comp price as as-is
+    if (!asIsValue && tierComps.length > 0) {
+      var compPrices = tierComps.filter(c => c.price > 0).map(c => c.price).sort((a, b) => a - b);
+      if (compPrices.length > 0) {
+        var mid = Math.floor(compPrices.length / 2);
+        asIsValue = compPrices.length % 2 === 0
+          ? Math.round((compPrices[mid - 1] + compPrices[mid]) / 2)
+          : compPrices[mid];
+      }
+    }
     let arvPricePerSqft = null;
     let arvCompsUsed = 0;
 

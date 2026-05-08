@@ -43,43 +43,70 @@ export default async function handler(req, res) {
       }
     }
 
-    // Filter to SOLD comps only — exclude active/for-sale listings
-    // A comp with a removedDate was taken off market (likely sold)
-    // A comp with status containing 'sold' or 'closed' is confirmed sold
-    allComps = allComps.filter(c => {
+    // Mark each comp as sold or active
+    allComps.forEach(c => {
       if (c.status) {
         var s = c.status.toLowerCase();
-        if (s.includes('active') || s.includes('for sale') || s.includes('pending')) return false;
+        c._isSold = !(s.includes('active') || s.includes('for sale') || s.includes('pending'));
+      } else {
+        // No status field — assume sold (Rentcast AVM endpoint returns sales comps by default)
+        c._isSold = true;
       }
-      return true;
     });
 
+    // Try sold comps first
+    let soldComps = allComps.filter(c => c._isSold);
+    let usingSoldOnly = true;
+
     // Tier 1: 90 days within 1 mile
-    let tierComps = allComps.filter(c => c.distance != null && c.distance <= 1 && c.daysOld != null && c.daysOld <= 90);
+    let tierComps = soldComps.filter(c => c.distance != null && c.distance <= 1 && c.daysOld != null && c.daysOld <= 90);
     let compTier = { daysWindow: 90, radiusMiles: 1 };
 
     // Tier 2: 180 days within 1 mile
     if (tierComps.length < 3) {
-      tierComps = allComps.filter(c => c.distance != null && c.distance <= 1 && c.daysOld != null && c.daysOld <= 180);
+      tierComps = soldComps.filter(c => c.distance != null && c.distance <= 1 && c.daysOld != null && c.daysOld <= 180);
       compTier = { daysWindow: 180, radiusMiles: 1 };
     }
 
     // Tier 3: 180 days within 1.5 miles
     if (tierComps.length < 3) {
-      tierComps = allComps.filter(c => c.distance != null && c.distance <= 1.5 && c.daysOld != null && c.daysOld <= 180);
+      tierComps = soldComps.filter(c => c.distance != null && c.distance <= 1.5 && c.daysOld != null && c.daysOld <= 180);
       compTier = { daysWindow: 180, radiusMiles: 1.5 };
     }
 
-    // Tier 4: 365 days within 3 miles (rural areas, only reached via Stage 2)
+    // Tier 4: 365 days within 3 miles
     if (tierComps.length < 3) {
-      tierComps = allComps.filter(c => c.distance != null && c.distance <= 3 && c.daysOld != null && c.daysOld <= 365);
+      tierComps = soldComps.filter(c => c.distance != null && c.distance <= 3 && c.daysOld != null && c.daysOld <= 365);
       compTier = { daysWindow: 365, radiusMiles: 3 };
     }
 
-    // Tier 5: 365 days within 5 miles (very rural, only reached via Stage 2)
+    // Tier 5: 365 days within 5 miles
     if (tierComps.length < 3) {
-      tierComps = allComps.filter(c => c.distance != null && c.distance <= 5 && c.daysOld != null && c.daysOld <= 365);
+      tierComps = soldComps.filter(c => c.distance != null && c.distance <= 5 && c.daysOld != null && c.daysOld <= 365);
       compTier = { daysWindow: 365, radiusMiles: 5 };
+    }
+
+    // Fallback: if still not enough sold comps, include active listings too
+    if (tierComps.length < 3) {
+      usingSoldOnly = false;
+      tierComps = allComps.filter(c => c.distance != null && c.distance <= 1 && c.daysOld != null && c.daysOld <= 90);
+      compTier = { daysWindow: 90, radiusMiles: 1 };
+      if (tierComps.length < 3) {
+        tierComps = allComps.filter(c => c.distance != null && c.distance <= 1 && c.daysOld != null && c.daysOld <= 180);
+        compTier = { daysWindow: 180, radiusMiles: 1 };
+      }
+      if (tierComps.length < 3) {
+        tierComps = allComps.filter(c => c.distance != null && c.distance <= 1.5 && c.daysOld != null && c.daysOld <= 180);
+        compTier = { daysWindow: 180, radiusMiles: 1.5 };
+      }
+      if (tierComps.length < 3) {
+        tierComps = allComps.filter(c => c.distance != null && c.distance <= 3 && c.daysOld != null && c.daysOld <= 365);
+        compTier = { daysWindow: 365, radiusMiles: 3 };
+      }
+      if (tierComps.length < 3) {
+        tierComps = allComps.filter(c => c.distance != null && c.distance <= 5 && c.daysOld != null && c.daysOld <= 365);
+        compTier = { daysWindow: 365, radiusMiles: 5 };
+      }
     }
 
     // Determine subject year built for filtering
@@ -101,7 +128,8 @@ export default async function handler(req, res) {
       daysOld: c.daysOld || 0,
       bedrooms: c.bedrooms || null,
       bathrooms: c.bathrooms || null,
-      squareFootage: c.squareFootage || null
+      squareFootage: c.squareFootage || null,
+      compStatus: c._isSold ? 'Sold' : 'Listed'
     }));
 
     compTier.count = finalComps.length;
@@ -392,7 +420,8 @@ export default async function handler(req, res) {
       arvPricePerSqft: arvPricePerSqft,
       arvCompsUsed: arvCompsUsed,
       arvLimitedUpside: arvLimitedUpside,
-      medianPricePerSqft: typeof medianPpsf !== 'undefined' ? medianPpsf : null
+      medianPricePerSqft: typeof medianPpsf !== 'undefined' ? medianPpsf : null,
+      includesActiveListings: !usingSoldOnly
     });
   } catch (e) {
     return res.status(500).json({ error: 'Failed to fetch ARV' });

@@ -1000,7 +1000,7 @@ function findARV(){
   .then(function(r){return r.json();})
   .then(function(d){
     var asIs=d.asIsValue||d.price||d.priceRangeLow||0;
-    if(!asIs)throw new Error('No value found. Try a nearby address.');
+    if(!asIs)throw new Error('Not enough data for this address. This usually happens in rural areas or small towns where there have not been many recent sales nearby. Try entering beds, baths, and sqft for a better match, or try a nearby city address.');
     var hasARV=d.estimatedARV&&d.arvPricePerSqft&&d.arvCompsUsed;
     var useARV=hasARV?d.estimatedARV:asIs;
     arv=useARV;

@@ -158,6 +158,7 @@ export default async function handler(req, res) {
     }
     let arvPricePerSqft = null;
     let arvCompsUsed = 0;
+    let targetSqft = subjectSqft || null;
 
     // Determine subject attributes
     const subjectSqft = sqft != null
@@ -243,10 +244,11 @@ export default async function handler(req, res) {
     if (arvComps.length >= 3) {
       // Determine effective subject sqft for adjustments
       const avgCompSqft = Math.round(arvComps.reduce((s, c) => s + c.squareFootage, 0) / arvComps.length);
-      let targetSqft = subjectSqft || avgCompSqft;
+      let targetSqftInner = subjectSqft || avgCompSqft;
       if (subjectSqft && avgCompSqft && (subjectSqft / avgCompSqft < 0.6 || subjectSqft / avgCompSqft > 1.6)) {
-        targetSqft = avgCompSqft;
+        targetSqftInner = avgCompSqft;
       }
+      targetSqft = targetSqftInner;
 
       // Average comp beds/baths as fallback when subject data is missing
       const avgCompBeds = subjectBeds || Math.round(arvComps.reduce((s, c) => s + (c.bedrooms || 3), 0) / arvComps.length);

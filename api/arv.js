@@ -45,11 +45,11 @@ export default async function handler(req, res) {
 
     // Mark each comp as sold or active
     allComps.forEach(c => {
-      if (c.status) {
+      if (c.status && typeof c.status === 'string') {
         var s = c.status.toLowerCase();
         c._isSold = !(s.includes('active') || s.includes('for sale') || s.includes('pending'));
       } else {
-        // No status field — assume sold (Rentcast AVM endpoint returns sales comps by default)
+        // No status field or non-string — assume sold (Rentcast AVM endpoint returns sales comps by default)
         c._isSold = true;
       }
     });
@@ -424,6 +424,7 @@ export default async function handler(req, res) {
       includesActiveListings: !usingSoldOnly
     });
   } catch (e) {
+    console.error('ARV error:', e.message, e.stack);
     return res.status(500).json({ error: 'Failed to fetch ARV' });
   }
 }

@@ -1221,18 +1221,12 @@ async function handleJackiePhoto(fileInput){
         var typingEl=document.getElementById('jackie-typing');
         if(typingEl)typingEl.remove();
 
-        // Chunk the photo response like text messages
-        var chunks=reply.split(/\n\n+/).filter(function(c){return c.trim().length>0;});
-        if(chunks.length<=1){
-          var aiBubble=document.createElement('div');
-          aiBubble.style.cssText='background:linear-gradient(135deg,#7C3AED,#FF1A8C);border-radius:16px 16px 16px 4px;padding:14px 18px;max-width:85%;color:#fff;font-size:14px;line-height:1.6;font-weight:300;white-space:pre-wrap';
-          var formatted=reply.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/^- /gm,'• ').replace(/\n/g,'<br>');
-          aiBubble.innerHTML=formatted;
-          box.appendChild(aiBubble);
-          box.scrollTop=box.scrollHeight;
-        }else{
-          await showChunks(chunks,box);
-        }
+        var aiBubble=document.createElement('div');
+        aiBubble.style.cssText='background:linear-gradient(135deg,#7C3AED,#FF1A8C);border-radius:16px 16px 16px 4px;padding:14px 18px;max-width:85%;color:#fff;font-size:14px;line-height:1.6;font-weight:300;white-space:pre-wrap';
+        var formatted=reply.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>').replace(/^- /gm,'• ').replace(/\n/g,'<br>');
+        aiBubble.innerHTML=formatted;
+        box.appendChild(aiBubble);
+        box.scrollTop=box.scrollHeight;
       }catch(e){
         var typingEl=document.getElementById('jackie-typing');
         if(typingEl)typingEl.textContent='Could not analyze this photo. Try again.';

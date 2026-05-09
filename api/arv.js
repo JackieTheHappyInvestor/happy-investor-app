@@ -104,7 +104,8 @@ export default async function handler(req, res) {
       bedrooms: c.bedrooms || null,
       bathrooms: c.bathrooms || null,
       squareFootage: c.squareFootage || null,
-      compStatus: c._isSold ? 'Sold' : 'Listed'
+      compStatus: c._isSold ? 'Sold' : 'Listed',
+      hasReliableStatus: false
     }));
 
     compTier.count = finalComps.length;
@@ -394,6 +395,15 @@ export default async function handler(req, res) {
       if (arvHigh && arvHigh < asIsValue) arvHigh = asIsValue;
     }
 
+    // Only show active listing labels when there is a genuine mix of sold and listed
+    // If ALL comps show as Listed, Rentcast's status field is unreliable — hide labels
+    var hasSold = finalComps.some(function(c){ return c.compStatus === 'Sold'; });
+    var hasListed = finalComps.some(function(c){ return c.compStatus === 'Listed'; });
+    var hasReliableStatus = hasSold && hasListed;
+    if (!hasReliableStatus) {
+      finalComps.forEach(function(c){ delete c.compStatus; });
+    }
+
     return res.status(200).json({
       price: data.price || 0,
       priceRangeLow: data.priceRangeLow,
@@ -409,7 +419,7 @@ export default async function handler(req, res) {
       arvCompsUsed: arvCompsUsed,
       arvLimitedUpside: arvLimitedUpside,
       medianPricePerSqft: typeof medianPpsf !== 'undefined' ? medianPpsf : null,
-      includesActiveListings: finalComps.some(c => c.compStatus === 'Listed')
+      includesActiveListings: hasReliableStatus
     });
   } catch (e) {
     console.error('ARV error:', e.message, e.stack);

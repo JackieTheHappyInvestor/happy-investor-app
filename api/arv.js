@@ -43,70 +43,45 @@ export default async function handler(req, res) {
       }
     }
 
-    // Mark each comp as sold or active
+    // Mark each comp with status label (informational only — no filtering)
+    // Rentcast's status field is unreliable: sold comps often show "Active" 
+    // because MLS listings aren't updated immediately after sale
+    let usingSoldOnly = true;
     allComps.forEach(c => {
       if (c.status && typeof c.status === 'string') {
         var s = c.status.toLowerCase();
         c._isSold = !(s.includes('active') || s.includes('for sale') || s.includes('pending'));
       } else {
-        // No status field or non-string — assume sold (Rentcast AVM endpoint returns sales comps by default)
         c._isSold = true;
       }
     });
 
-    // Try sold comps first
-    let soldComps = allComps.filter(c => c._isSold);
-    let usingSoldOnly = true;
-
     // Tier 1: 90 days within 1 mile
-    let tierComps = soldComps.filter(c => c.distance != null && c.distance <= 1 && c.daysOld != null && c.daysOld <= 90);
+    let tierComps = allComps.filter(c => c.distance != null && c.distance <= 1 && c.daysOld != null && c.daysOld <= 90);
     let compTier = { daysWindow: 90, radiusMiles: 1 };
 
     // Tier 2: 180 days within 1 mile
     if (tierComps.length < 3) {
-      tierComps = soldComps.filter(c => c.distance != null && c.distance <= 1 && c.daysOld != null && c.daysOld <= 180);
+      tierComps = allComps.filter(c => c.distance != null && c.distance <= 1 && c.daysOld != null && c.daysOld <= 180);
       compTier = { daysWindow: 180, radiusMiles: 1 };
     }
 
     // Tier 3: 180 days within 1.5 miles
     if (tierComps.length < 3) {
-      tierComps = soldComps.filter(c => c.distance != null && c.distance <= 1.5 && c.daysOld != null && c.daysOld <= 180);
+      tierComps = allComps.filter(c => c.distance != null && c.distance <= 1.5 && c.daysOld != null && c.daysOld <= 180);
       compTier = { daysWindow: 180, radiusMiles: 1.5 };
     }
 
     // Tier 4: 365 days within 3 miles
     if (tierComps.length < 3) {
-      tierComps = soldComps.filter(c => c.distance != null && c.distance <= 3 && c.daysOld != null && c.daysOld <= 365);
+      tierComps = allComps.filter(c => c.distance != null && c.distance <= 3 && c.daysOld != null && c.daysOld <= 365);
       compTier = { daysWindow: 365, radiusMiles: 3 };
     }
 
     // Tier 5: 365 days within 5 miles
     if (tierComps.length < 3) {
-      tierComps = soldComps.filter(c => c.distance != null && c.distance <= 5 && c.daysOld != null && c.daysOld <= 365);
+      tierComps = allComps.filter(c => c.distance != null && c.distance <= 5 && c.daysOld != null && c.daysOld <= 365);
       compTier = { daysWindow: 365, radiusMiles: 5 };
-    }
-
-    // Fallback: if still not enough sold comps, include active listings too
-    if (tierComps.length < 3) {
-      usingSoldOnly = false;
-      tierComps = allComps.filter(c => c.distance != null && c.distance <= 1 && c.daysOld != null && c.daysOld <= 90);
-      compTier = { daysWindow: 90, radiusMiles: 1 };
-      if (tierComps.length < 3) {
-        tierComps = allComps.filter(c => c.distance != null && c.distance <= 1 && c.daysOld != null && c.daysOld <= 180);
-        compTier = { daysWindow: 180, radiusMiles: 1 };
-      }
-      if (tierComps.length < 3) {
-        tierComps = allComps.filter(c => c.distance != null && c.distance <= 1.5 && c.daysOld != null && c.daysOld <= 180);
-        compTier = { daysWindow: 180, radiusMiles: 1.5 };
-      }
-      if (tierComps.length < 3) {
-        tierComps = allComps.filter(c => c.distance != null && c.distance <= 3 && c.daysOld != null && c.daysOld <= 365);
-        compTier = { daysWindow: 365, radiusMiles: 3 };
-      }
-      if (tierComps.length < 3) {
-        tierComps = allComps.filter(c => c.distance != null && c.distance <= 5 && c.daysOld != null && c.daysOld <= 365);
-        compTier = { daysWindow: 365, radiusMiles: 5 };
-      }
     }
 
     // Determine subject year built for filtering
@@ -434,7 +409,7 @@ export default async function handler(req, res) {
       arvCompsUsed: arvCompsUsed,
       arvLimitedUpside: arvLimitedUpside,
       medianPricePerSqft: typeof medianPpsf !== 'undefined' ? medianPpsf : null,
-      includesActiveListings: !usingSoldOnly
+      includesActiveListings: finalComps.some(c => c.compStatus === 'Listed')
     });
   } catch (e) {
     console.error('ARV error:', e.message, e.stack);

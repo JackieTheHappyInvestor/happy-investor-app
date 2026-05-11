@@ -22,7 +22,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         from: 'Happy Investor App <onboarding@resend.dev>',
-        to: ['hello@jackiethehappyinvestor.com'],
+        to: ['rufuapal1600@gmail.com'],
         subject: 'New App Feedback - ' + rating + '/5 Stars',
         html: '<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto">' +
           '<h2 style="color:#FF1A8C;margin-bottom:4px">New App Feedback</h2>' +

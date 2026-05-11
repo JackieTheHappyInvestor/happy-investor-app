@@ -1221,6 +1221,8 @@ async function submitFeedback(){
     var userEmail=currentUser?currentUser.email:'unknown';
     var r=await sb.from('feedback').insert({user_id:currentUser?currentUser.id:null,email:userEmail,rating:feedbackRating,message:msg});
     if(r.error)throw r.error;
+    // Send email notification to Jackie (fire and forget)
+    fetch('/api/send-feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rating:feedbackRating,message:msg,email:userEmail})}).catch(function(){});
     document.getElementById('feedback-success').style.display='block';
     document.getElementById('feedback-btn').style.display='none';
     document.getElementById('feedback-msg').style.display='none';

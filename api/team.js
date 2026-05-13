@@ -61,7 +61,7 @@ export default async function handler(req, res) {
         headers: {
           'Content-Type': 'application/json',
           'X-Goog-Api-Key': apiKey,
-          'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.addressComponents,places.types'
+          'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.addressComponents,places.types,places.nationalPhoneNumber,places.websiteUri'
         },
         body: JSON.stringify({
           textQuery: textQuery,
@@ -87,6 +87,8 @@ export default async function handler(req, res) {
         formatted_address: p.formattedAddress || '',
         rating: p.rating || null,
         user_ratings_total: p.userRatingCount || 0,
+        phone: p.nationalPhoneNumber || null,
+        website: p.websiteUri || null,
         _state: stateMatch ? stateMatch.shortText : null,
         _types: p.types || []
       };
@@ -124,7 +126,9 @@ export default async function handler(req, res) {
         name: r.name,
         formatted_address: r.formatted_address,
         rating: r.rating,
-        user_ratings_total: r.user_ratings_total
+        user_ratings_total: r.user_ratings_total,
+        phone: r.phone,
+        website: r.website
       };
     });
 

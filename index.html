@@ -1171,7 +1171,7 @@ function findTeam(){
   types.forEach(function(type){
     fetch('/api/team?zip='+zip+'&category='+encodeURIComponent(type)+'&type='+encodeURIComponent(vt[type]))
     .then(function(r){return r.json();})
-    .then(function(d){(d.results||[]).forEach(function(p){vendors.push({name:p.name,address:p.formatted_address,rating:p.rating,type:type});});})
+    .then(function(d){(d.results||[]).forEach(function(p){vendors.push({name:p.name,address:p.formatted_address,rating:p.rating,type:type,phone:p.phone||null,website:p.website||null});});})
     .catch(function(){})
     .finally(function(){
       done++;
@@ -1481,7 +1481,7 @@ function renderTeam(){
   }else{
     displayList=list.slice(0,initialLimit);
   }
-  var html=displayList.map(function(v){return '<div class="vcard"><div class="v-icon" style="background:'+vc[v.type]+'">'+vi[v.type]+'</div><div style="flex:1"><div class="v-name">'+v.name+'</div><div class="v-type">'+vl[v.type]+'</div>'+(v.rating?'<div class="v-rating">'+v.rating+' stars</div>':'')+'<div class="v-addr">'+(v.address||'')+'</div></div></div>';}).join('');
+  var html=displayList.map(function(v){var phoneHtml=v.phone?'<div style="margin-top:4px"><a href="tel:'+v.phone+'" style="color:#FF1A8C;font-size:13px;text-decoration:none;font-weight:400">📞 '+v.phone+'</a></div>':'';var webHtml=v.website?'<div style="margin-top:2px"><a href="'+v.website+'" target="_blank" style="color:#7C3AED;font-size:12px;text-decoration:none;font-weight:300">🌐 Website</a></div>':'';return '<div class="vcard"><div class="v-icon" style="background:'+vc[v.type]+'">'+vi[v.type]+'</div><div style="flex:1"><div class="v-name">'+v.name+'</div><div class="v-type">'+vl[v.type]+'</div>'+(v.rating?'<div class="v-rating">'+v.rating+' stars</div>':'')+'<div class="v-addr">'+(v.address||'')+'</div>'+phoneHtml+webHtml+'</div></div>';}).join('');
   var remaining=list.length-displayList.length;
   if(!showAll&&remaining>0){
     html+='<button onclick="loadMoreTeam()" style="width:100%;margin-top:14px;padding:14px;border:none;border-radius:14px;background:#29D0F5;color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(41,208,245,0.25)">Show more results ('+remaining+' more)</button>';

@@ -23,14 +23,18 @@ export default async function handler(req, res) {
     // Stage 1: narrow search (1.5 miles, 180 days) — preserves accuracy for urban/suburban
     let url = `https://api.rentcast.io/v1/avm/value?${baseParams}&maxRadius=1.5&daysOld=180`;
     let response = await fetch(url, { headers: apiHeaders });
+    let rentcastFailed = false;
+    let data = {};
     if (!response.ok) {
-      return res.status(response.status).json({ error: 'Rentcast API error' });
+      rentcastFailed = true;
+      data = { comparables: [] };
+    } else {
+      data = await response.json();
     }
-    let data = await response.json();
     let allComps = Array.isArray(data.comparables) ? data.comparables : [];
 
     // Stage 2: if narrow returned fewer than 3 comps, widen to 5 miles / 365 days (rural fallback)
-    if (allComps.length < 3) {
+    if (!rentcastFailed && allComps.length < 3) {
       let wideUrl = `https://api.rentcast.io/v1/avm/value?${baseParams}&maxRadius=5&daysOld=365`;
       let wideResp = await fetch(wideUrl, { headers: apiHeaders });
       if (wideResp.ok) {
@@ -404,6 +408,91 @@ export default async function handler(req, res) {
       finalComps.forEach(function(c){ delete c.compStatus; });
     }
 
+    // ========== ATTOM FALLBACK ==========
+    // If Rentcast produced no usable data, try ATTOM as secondary source
+    if (!asIsValue && !estimatedARV && process.env.ATTOM_API_KEY) {
+      try {
+        // Split address: "409 E Everett St, Marion, IL 62959" → address1 + address2
+        var addrParts = address.split(',');
+        if (addrParts.length >= 2) {
+          var address1 = addrParts[0].trim();
+          var address2 = addrParts.slice(1).join(',').trim();
+
+          var attomResp = await fetch(
+            'https://api.gateway.attomdata.com/propertyapi/v1.0.0/avm/detail?address1=' +
+            encodeURIComponent(address1) + '&address2=' + encodeURIComponent(address2),
+            {
+              headers: { apikey: process.env.ATTOM_API_KEY, accept: 'application/json' },
+              signal: AbortSignal.timeout(5000)
+            }
+          );
+
+          if (attomResp.ok) {
+            var attomData = await attomResp.json();
+            var prop = attomData.property && attomData.property[0];
+
+            if (prop && prop.avm && prop.avm.amount && prop.avm.amount.value > 0) {
+              var avm = prop.avm;
+              var attomAsIs = avm.amount.value;
+              var attomARV = avm.condition
+                ? (avm.condition.avmgoodhigh || avm.amount.high || attomAsIs)
+                : (avm.amount.high || attomAsIs);
+              var attomArvLow = avm.condition
+                ? (avm.condition.avmgoodlow || avm.amount.low)
+                : avm.amount.low;
+              var attomArvHigh = avm.condition
+                ? (avm.condition.avmgoodhigh || avm.amount.high)
+                : avm.amount.high;
+              var attomConfidence = avm.amount.scr || null;
+
+              // Get property details from ATTOM
+              var attomSqft = prop.building && prop.building.size
+                ? (prop.building.size.livingsize || prop.building.size.universalsize || null)
+                : null;
+              var effectiveSqft = sqft || attomSqft;
+              var attomPpsf = effectiveSqft ? Math.round(attomARV / effectiveSqft) : null;
+
+              // If ARV is lower than as-is, clamp
+              if (attomARV < attomAsIs) {
+                attomARV = attomAsIs;
+                attomArvLow = attomAsIs;
+                attomArvHigh = attomAsIs;
+              }
+
+              return res.status(200).json({
+                price: attomAsIs,
+                priceRangeLow: avm.amount.low,
+                priceRangeHigh: avm.amount.high,
+                subjectProperty: {
+                  squareFootage: attomSqft,
+                  yearBuilt: prop.summary ? prop.summary.yearbuilt : null,
+                  bedrooms: prop.building && prop.building.rooms ? prop.building.rooms.beds : null,
+                  bathrooms: prop.building && prop.building.rooms ? prop.building.rooms.bathsfull : null
+                },
+                comparables: [],
+                compTier: null,
+                asIsValue: attomAsIs,
+                estimatedARV: attomARV,
+                arvLow: attomArvLow,
+                arvHigh: attomArvHigh,
+                arvPricePerSqft: attomPpsf,
+                arvCompsUsed: 0,
+                arvLimitedUpside: attomARV <= attomAsIs,
+                medianPricePerSqft: null,
+                includesActiveListings: false,
+                source: 'attom',
+                confidence: attomConfidence
+              });
+            }
+          }
+        }
+      } catch (attomErr) {
+        console.error('ATTOM fallback error:', attomErr.message);
+        // ATTOM failed too — fall through to Rentcast response (which may be empty)
+      }
+    }
+    // ========== END ATTOM FALLBACK ==========
+
     return res.status(200).json({
       price: data.price || 0,
       priceRangeLow: data.priceRangeLow,
@@ -419,7 +508,9 @@ export default async function handler(req, res) {
       arvCompsUsed: arvCompsUsed,
       arvLimitedUpside: arvLimitedUpside,
       medianPricePerSqft: typeof medianPpsf !== 'undefined' ? medianPpsf : null,
-      includesActiveListings: hasReliableStatus
+      includesActiveListings: hasReliableStatus,
+      source: 'rentcast',
+      confidence: null
     });
   } catch (e) {
     console.error('ARV error:', e.message, e.stack);

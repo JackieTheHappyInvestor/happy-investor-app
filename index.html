@@ -1072,7 +1072,7 @@ function findARV(){
       }
       html+='</div>';
       if(d.source==='attom'){
-        html+='<div style="font-size:11px;color:#bbb;margin-top:8px;line-height:1.4;font-style:italic">This estimate is from a secondary data source. Always verify with local comps before making a final decision.</div>';
+        html+='<div style="font-size:11px;color:#bbb;margin-top:8px;line-height:1.4;font-style:italic">This is an automated valuation estimate. Always verify with local comps before making a final decision.</div>';
       }else{
         html+='<button class="xcheck-explain-toggle" onclick="toggleArvExplain()">How is this calculated?</button>';
         html+='<div class="xcheck-explain-panel hidden" id="arv-explain"><p><strong>Two numbers, two purposes.</strong> The as-is value ('+fmt(asIs)+') is what the property is worth today in its current condition. The estimated ARV ('+fmt(d.estimatedARV)+') is what it could sell for after renovations.</p><p><strong>How we estimate ARV:</strong> We pull comparable sales nearby, then filter out new construction and any comp more than 20% different in square footage from the subject property. The remaining comps are weighted by similarity to the subject. We take the top-performing comps by price per sqft and compute a weighted average to estimate what a renovated version of this property would sell for.</p><p><strong>The range</strong> shows the conservative to optimistic estimate based on comp variation in your area.</p><p><strong>Want it more accurate?</strong> Add the bed, bath, and sqft of your subject property above. The more accurate your inputs, the tighter the estimate.</p></div>';

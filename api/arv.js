@@ -412,12 +412,19 @@ export default async function handler(req, res) {
     // If Rentcast produced no usable data, try ATTOM as secondary source
     if (!asIsValue && !estimatedARV && process.env.ATTOM_API_KEY) {
       try {
-        // Split address: "409 E Everett St, Marion, IL 62959" → address1 + address2
+        // Split address: "409 E Everett St, Marion, IL 62959" → components
         var addrParts = address.split(',');
         if (addrParts.length >= 2) {
           var address1 = addrParts[0].trim();
           var address2 = addrParts.slice(1).join(',').trim();
 
+          // Parse city, state, zip for SalesComparables endpoint
+          var addrMatch = address2.match(/^(.*?),?\s+([A-Z]{2})\s+(\d{5})/);
+          var attomCity = addrMatch ? addrMatch[1].replace(/,$/, '').trim() : null;
+          var attomState = addrMatch ? addrMatch[2] : null;
+          var attomZip = addrMatch ? addrMatch[3] : null;
+
+          // Call ATTOM AVM
           var attomResp = await fetch(
             'https://api.gateway.attomdata.com/propertyapi/v1.0.0/avm/detail?address1=' +
             encodeURIComponent(address1) + '&address2=' + encodeURIComponent(address2),
@@ -459,6 +466,77 @@ export default async function handler(req, res) {
                 attomArvHigh = attomAsIs;
               }
 
+              // Call ATTOM SalesComparables for sold comps
+              var attomComps = [];
+              if (attomCity && attomState && attomZip) {
+                try {
+                  var compsUrl = 'https://api.gateway.attomdata.com/property/v2/SalesComparables/Address/' +
+                    encodeURIComponent(address1) + '/' +
+                    encodeURIComponent(attomCity) + '/-/' +
+                    attomState + '/' + attomZip +
+                    '?searchType=Radius&minComps=1&maxComps=10&miles=5&saleDateRange=12';
+
+                  var compsResp = await fetch(compsUrl, {
+                    headers: { apikey: process.env.ATTOM_API_KEY, accept: 'application/json' },
+                    signal: AbortSignal.timeout(5000)
+                  });
+
+                  if (compsResp.ok) {
+                    var compsData = await compsResp.json();
+                    var properties = compsData.RESPONSE_GROUP &&
+                      compsData.RESPONSE_GROUP.RESPONSE &&
+                      compsData.RESPONSE_GROUP.RESPONSE.RESPONSE_DATA &&
+                      compsData.RESPONSE_GROUP.RESPONSE.RESPONSE_DATA.PROPERTY_INFORMATION_RESPONSE_ext &&
+                      compsData.RESPONSE_GROUP.RESPONSE.RESPONSE_DATA.PROPERTY_INFORMATION_RESPONSE_ext.SUBJECT_PROPERTY_ext &&
+                      compsData.RESPONSE_GROUP.RESPONSE.RESPONSE_DATA.PROPERTY_INFORMATION_RESPONSE_ext.SUBJECT_PROPERTY_ext.PROPERTY;
+
+                    if (Array.isArray(properties)) {
+                      var now = Date.now();
+                      properties.forEach(function(p) {
+                        var comp = p.COMPARABLE_PROPERTY_ext;
+                        if (!comp) return;
+                        var salePrice = parseFloat(comp.SALES_HISTORY && comp.SALES_HISTORY['@PropertySalesAmount']) || 0;
+                        var saleDate = comp.SALES_HISTORY && comp.SALES_HISTORY['@TransferDate_ext'];
+                        var compSqft = parseFloat(comp.STRUCTURE && comp.STRUCTURE['@GrossLivingAreaSquareFeetCount']) || 0;
+                        var compBeds = parseInt(comp.STRUCTURE && comp.STRUCTURE['@TotalBedroomCount']) || null;
+                        var compBaths = parseFloat(comp.STRUCTURE && comp.STRUCTURE['@TotalBathroomCount']) || null;
+                        var compDist = parseFloat(comp['@DistanceFromSubjectPropertyMilesCount']) || 0;
+                        var compAddr = (comp['@_StreetAddress'] || '') + ', ' + (comp['@_City'] || '') + ', ' + (comp['@_State'] || '') + ' ' + (comp['@_PostalCode'] || '');
+
+                        // Calculate days old
+                        var daysOld = 0;
+                        if (saleDate) {
+                          var saleDateMs = new Date(saleDate).getTime();
+                          daysOld = Math.round((now - saleDateMs) / (1000 * 60 * 60 * 24));
+                        }
+
+                        // Filter: skip very low prices (likely non-arms-length), skip if no price
+                        if (salePrice < 5000) return;
+
+                        attomComps.push({
+                          address: compAddr.trim(),
+                          price: Math.round(salePrice),
+                          distance: Math.round(compDist * 100) / 100,
+                          daysOld: daysOld,
+                          bedrooms: compBeds,
+                          bathrooms: compBaths,
+                          squareFootage: compSqft || null,
+                          compStatus: 'Sold'
+                        });
+                      });
+
+                      // Sort by distance
+                      attomComps.sort(function(a, b) { return a.distance - b.distance; });
+                      // Limit to 5
+                      attomComps = attomComps.slice(0, 5);
+                    }
+                  }
+                } catch (compsErr) {
+                  console.error('ATTOM comps error:', compsErr.message);
+                  // Continue without comps — AVM value is still useful
+                }
+              }
+
               return res.status(200).json({
                 price: attomAsIs,
                 priceRangeLow: avm.amount.low,
@@ -469,8 +547,8 @@ export default async function handler(req, res) {
                   bedrooms: prop.building && prop.building.rooms ? prop.building.rooms.beds : null,
                   bathrooms: prop.building && prop.building.rooms ? prop.building.rooms.bathsfull : null
                 },
-                comparables: [],
-                compTier: null,
+                comparables: attomComps,
+                compTier: attomComps.length > 0 ? { daysWindow: 365, radiusMiles: 5, count: attomComps.length } : null,
                 asIsValue: attomAsIs,
                 estimatedARV: attomARV,
                 arvLow: attomArvLow,

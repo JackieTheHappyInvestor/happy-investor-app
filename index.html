@@ -956,7 +956,7 @@ var SUPABASE_URL='https://bpvxfchfzolbczpvlqpo.supabase.co';
 var SUPABASE_KEY='sb_publishable_TdiZtjzvQGcTfZb18-b0VA_2obGwmkB';
 var sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'happy-investor-auth'}});
 var currentUser=null,currentProfile=null,isSubscribed=false,authReady=false,pendingNav=null;
-var arv=0,vendors=[],cf='all',knowOpen=false,showAll=false;
+var arv=0,vendors=[],cf='all',knowOpen=false,showAll=false,lastAnalysis=null;
 var vt={realtor:'investor friendly real estate agent',lender:'private money lender for real estate investors',dscr:'DSCR loan mortgage broker non-QM investor',title:'title insurance company real estate closing',contractor:'licensed general contractor home renovation',accountant:'CPA accountant real estate investor taxes',attorney:'real estate attorney closing contracts',flatfee:'flat fee MLS listing service for sale by owner'};
 var vi={realtor:'🏡',lender:'💰',dscr:'🏦',title:'📋',contractor:'🔨',accountant:'🧮',attorney:'⚖️',flatfee:'🏷️'};
 var vl={realtor:'Realtor',lender:'Hard Money Lender',dscr:'DSCR Lender',title:'Title Company',contractor:'Contractor',accountant:'Accountant',attorney:'Real Estate Attorney',flatfee:'List on MLS (no realtor)'};
@@ -1039,6 +1039,7 @@ function findARV(){
   fetch(url)
   .then(function(r){return r.json();})
   .then(function(d){
+    lastAnalysis=d;
     var asIs=d.asIsValue||d.price||d.priceRangeLow||0;
     var hasARV=d.estimatedARV&&d.arvCompsUsed;
     if(!asIs&&!hasARV)throw new Error('Not enough data for this address. This usually happens in rural areas or small towns where there have not been many recent sales nearby. Try entering beds, baths, and sqft for a better match, or try a nearby city address.');
@@ -1455,7 +1456,21 @@ function copyAffLink(){
 
 function saveToHistory(addr,arv,total,isDeal){
   var history=JSON.parse(localStorage.getItem('dealHistory')||'[]');
-  history.unshift({addr:addr,arv:arv,total:total,isDeal:isDeal,date:new Date().toLocaleDateString()});
+  var entry={
+    id:Date.now().toString(36),
+    addr:addr,
+    arv:arv,
+    total:total,
+    isDeal:isDeal,
+    date:new Date().toLocaleDateString(),
+    purchase:parseFloat(document.getElementById('purchase').value)||0,
+    rehab:parseFloat(document.getElementById('rehab').value)||0,
+    beds:document.getElementById('beds').value||'',
+    baths:document.getElementById('baths').value||'',
+    sqft:document.getElementById('sqft').value||'',
+    analysis:lastAnalysis||null
+  };
+  history.unshift(entry);
   if(history.length>50)history=history.slice(0,50);
   localStorage.setItem('dealHistory',JSON.stringify(history));
   renderHistory();
@@ -1467,9 +1482,74 @@ function renderHistory(){
   var list=document.getElementById('history-list');
   if(!history.length){if(empty)empty.style.display='block';if(list)list.innerHTML='';return;}
   if(empty)empty.style.display='none';
-  if(list)list.innerHTML=history.map(function(d){
-    return '<div style="background:#fff;border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:0 4px 16px rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:space-between;gap:12px"><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#1A1A1A;margin-bottom:2px">'+d.addr+'</div><div style="font-size:11px;color:#aaa;font-weight:300">'+d.date+' &bull; ARV: '+fmt(d.arv)+'</div></div><div style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;background:'+(d.isDeal?'#00C853':'#FF4444')+';color:#fff">'+(d.isDeal?'DEAL':'PASS')+'</div></div>';
+  if(list)list.innerHTML=history.map(function(d,i){
+    var hasDetail=d.analysis||d.purchase;
+    return '<div style="background:#fff;border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:0 4px 16px rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:'+(hasDetail?'pointer':'default')+'" '+(hasDetail?'onclick="viewDeal('+i+')"':'')+'><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#1A1A1A;margin-bottom:2px">'+d.addr+'</div><div style="font-size:11px;color:#aaa;font-weight:300">'+d.date+' &bull; ARV: '+fmt(d.arv)+(d.purchase?' &bull; Cost: '+fmt(d.total):'')+'</div></div><div style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;background:'+(d.isDeal?'#00C853':'#FF4444')+';color:#fff">'+(d.isDeal?'DEAL':'PASS')+'</div><div style="color:#ccc;font-size:18px">'+(hasDetail?'›':'')+'</div></div>';
   }).join('');
+}
+
+function viewDeal(idx){
+  var history=JSON.parse(localStorage.getItem('dealHistory')||'[]');
+  var deal=history[idx];
+  if(!deal)return;
+
+  var d=deal.analysis;
+  var html='<div style="max-width:600px;margin:0 auto">';
+  html+='<button onclick="go(\'history\')" style="background:none;border:none;color:#7C3AED;font-size:14px;cursor:pointer;padding:8px 0;font-weight:400;font-family:Inter,sans-serif">← Back to Deal History</button>';
+  html+='<div style="font-size:18px;font-weight:700;color:#1A1A1A;margin:12px 0 4px">'+deal.addr+'</div>';
+  html+='<div style="font-size:12px;color:#aaa;margin-bottom:16px;font-weight:300">Analyzed on '+deal.date+'</div>';
+
+  // Verdict
+  var ai=Math.round(deal.arv*0.7);
+  html+='<div class="verdict-block '+(deal.isDeal?'v-deal':'v-nodeal')+'" style="margin-bottom:16px"><div class="v-lbl">Total '+fmt(deal.total)+' is '+(deal.isDeal?'UNDER':'OVER')+' all-in number '+fmt(ai)+'</div><div class="v-main">'+(deal.isDeal?"IT'S A DEAL!":'WALK AWAY.')+'</div><div class="v-sub">'+(deal.isDeal?'Potential profit: ~'+fmt(ai-deal.total):'Over by '+fmt(Math.abs(ai-deal.total)))+'</div></div>';
+
+  // Numbers summary
+  html+='<div style="background:#fff;border-radius:16px;padding:16px;box-shadow:0 4px 16px rgba(0,0,0,0.05);margin-bottom:12px">';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
+  html+='<div><div style="font-size:11px;color:#aaa;font-weight:300">ARV</div><div style="font-size:16px;font-weight:700;color:#1A1A1A">'+fmt(deal.arv)+'</div></div>';
+  if(d&&d.asIsValue){html+='<div><div style="font-size:11px;color:#aaa;font-weight:300">As-is Value</div><div style="font-size:16px;font-weight:700;color:#1A1A1A">'+fmt(d.asIsValue)+'</div></div>';}
+  html+='<div><div style="font-size:11px;color:#aaa;font-weight:300">Purchase Price</div><div style="font-size:16px;font-weight:700;color:#1A1A1A">'+fmt(deal.purchase)+'</div></div>';
+  html+='<div><div style="font-size:11px;color:#aaa;font-weight:300">Rehab Cost</div><div style="font-size:16px;font-weight:700;color:#1A1A1A">'+fmt(deal.rehab)+'</div></div>';
+  html+='<div><div style="font-size:11px;color:#aaa;font-weight:300">Total Investment</div><div style="font-size:16px;font-weight:700;color:#1A1A1A">'+fmt(deal.total)+'</div></div>';
+  html+='<div><div style="font-size:11px;color:#aaa;font-weight:300">All-in Number (70%)</div><div style="font-size:16px;font-weight:700;color:#FF1A8C">'+fmt(ai)+'</div></div>';
+  html+='</div></div>';
+
+  // Property details
+  if(deal.beds||deal.baths||deal.sqft){
+    html+='<div style="background:#fff;border-radius:16px;padding:16px;box-shadow:0 4px 16px rgba(0,0,0,0.05);margin-bottom:12px">';
+    html+='<div style="font-size:13px;font-weight:600;color:#1A1A1A;margin-bottom:8px">Property Details</div>';
+    var details=[];
+    if(deal.beds)details.push(deal.beds+' bed');
+    if(deal.baths)details.push(deal.baths+' bath');
+    if(deal.sqft)details.push(deal.sqft+' sqft');
+    html+='<div style="font-size:13px;color:#666;font-weight:300">'+details.join(' &bull; ')+'</div>';
+    html+='</div>';
+  }
+
+  // Comps
+  if(d&&d.comparables&&d.comparables.length){
+    html+='<div style="background:#fff;border-radius:16px;padding:16px;box-shadow:0 4px 16px rgba(0,0,0,0.05);margin-bottom:12px">';
+    html+='<div style="font-size:13px;font-weight:600;color:#1A1A1A;margin-bottom:10px">Comparable Sales</div>';
+    d.comparables.forEach(function(c){
+      var statusTag=c.compStatus?' &middot; <span style="color:'+(c.compStatus==='Listed'?'#E8A300':'#22C55E')+';font-weight:600">'+c.compStatus+'</span>':'';
+      html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #f0f0f0"><div style="flex:1"><div style="font-size:12px;font-weight:500;color:#1A1A1A">'+c.address+'</div><div style="font-size:11px;color:#aaa;font-weight:300">'+(c.distance<0.1?'<0.1':c.distance.toFixed(2))+' mi &middot; '+c.daysOld+' days ago'+(c.bedrooms!=null?' &middot; '+c.bedrooms+'bd/'+c.bathrooms+'ba':'')+statusTag+'</div></div><div style="font-size:13px;font-weight:700;color:#FF1A8C">'+fmt(c.price)+'</div></div>';
+    });
+    html+='</div>';
+  }
+
+  // Source info
+  if(d&&d.source==='attom'&&d.confidence){
+    html+='<div style="font-size:11px;color:#bbb;text-align:center;margin-top:8px;font-style:italic">Confidence: '+d.confidence+'/100</div>';
+  }
+
+  html+='</div>';
+
+  // Show in a special detail view
+  var listEl=document.getElementById('history-list');
+  var emptyEl=document.getElementById('history-empty');
+  if(emptyEl)emptyEl.style.display='none';
+  if(listEl)listEl.innerHTML=html;
+  window.scrollTo(0,0);
 }
 
 function renderTeam(){

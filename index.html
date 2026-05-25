@@ -1465,9 +1465,9 @@ function saveToHistory(addr,arv,total,isDeal){
     date:new Date().toLocaleDateString(),
     purchase:parseFloat(document.getElementById('purchase').value)||0,
     rehab:parseFloat(document.getElementById('rehab').value)||0,
-    beds:document.getElementById('beds').value||'',
-    baths:document.getElementById('baths').value||'',
-    sqft:document.getElementById('sqft').value||'',
+    beds:document.getElementById('pd-beds')?document.getElementById('pd-beds').value:'',
+    baths:document.getElementById('pd-baths')?document.getElementById('pd-baths').value:'',
+    sqft:document.getElementById('pd-sqft')?document.getElementById('pd-sqft').value:'',
     analysis:lastAnalysis||null
   };
   history.unshift(entry);

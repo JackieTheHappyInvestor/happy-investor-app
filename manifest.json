@@ -1,0 +1,24 @@
+{
+  "name": "Happy Investor App",
+  "short_name": "Happy Investor",
+  "description": "Real Estate Investing Simplified - Jackie The Happy Investor Method",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8F8F8",
+  "theme_color": "#FF1A8C",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

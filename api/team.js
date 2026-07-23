@@ -77,6 +77,7 @@ export default async function handler(req, res) {
     );
 
     const data = await response.json();
+    console.log('Google Places response for', textQuery, ':', JSON.stringify(data).slice(0, 500));
 
     let results = (data.places || []).map(function (p) {
       const stateMatch = (p.addressComponents || []).find(function (c) {

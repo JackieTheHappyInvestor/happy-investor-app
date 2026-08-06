@@ -39,7 +39,8 @@ export default async function handler(req, res) {
     const geoData = await geoResponse.json();
 
     if (!geoData.results || !geoData.results.length) {
-      return res.status(200).json({ results: [] });
+      console.error('Geocoding failed for zip', zip, ':', geoData.status, geoData.error_message || '');
+      return res.status(200).json({ results: [], geoError: geoData.status || 'NO_RESULTS' });
     }
 
     const location = geoData.results[0].geometry.location;

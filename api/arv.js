@@ -571,6 +571,13 @@ export default async function handler(req, res) {
     }
     // ========== END ATTOM FALLBACK ==========
 
+    // Mark outcome so coverage gaps are countable in logs
+    if (!asIsValue && !estimatedARV) {
+      console.error('ARV_NO_DATA', JSON.stringify({ address: address, comps: allComps.length }));
+    } else {
+      console.log('ARV_OK', JSON.stringify({ address: address, comps: finalComps.length, arv: estimatedARV || asIsValue }));
+    }
+
     return res.status(200).json({
       price: data.price || 0,
       priceRangeLow: data.priceRangeLow,

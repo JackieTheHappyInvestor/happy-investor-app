@@ -537,6 +537,14 @@ export default async function handler(req, res) {
                 }
               }
 
+              await logLookup({
+                address: address,
+                found: true,
+                source: 'attom',
+                comps_count: attomComps.length,
+                arv: attomARV
+              });
+
               return res.status(200).json({
                 price: attomAsIs,
                 priceRangeLow: avm.amount.low,
@@ -571,12 +579,14 @@ export default async function handler(req, res) {
     }
     // ========== END ATTOM FALLBACK ==========
 
-    // Mark outcome so coverage gaps are countable in logs
-    if (!asIsValue && !estimatedARV) {
-      console.error('ARV_NO_DATA', JSON.stringify({ address: address, comps: allComps.length }));
-    } else {
-      console.log('ARV_OK', JSON.stringify({ address: address, comps: finalComps.length, arv: estimatedARV || asIsValue }));
-    }
+    // Record outcome so coverage gaps are measurable
+    await logLookup({
+      address: address,
+      found: !!(asIsValue || estimatedARV),
+      source: (asIsValue || estimatedARV) ? 'rentcast' : null,
+      comps_count: finalComps.length,
+      arv: estimatedARV || asIsValue || null
+    });
 
     return res.status(200).json({
       price: data.price || 0,
@@ -600,5 +610,37 @@ export default async function handler(req, res) {
   } catch (e) {
     console.error('ARV error:', e.message, e.stack);
     return res.status(500).json({ error: 'Failed to fetch ARV' });
+  }
+}
+
+// Record each ARV lookup outcome so coverage gaps can be measured over time.
+// Failures here must never affect the user-facing response.
+async function logLookup(row) {
+  try {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
+
+    // Pull a state code off the end of the address when present
+    var stateMatch = (row.address || '').match(/\b([A-Z]{2})\b(?:\s+\d{5})?\s*(?:,\s*USA)?\s*$/i);
+
+    await fetch(process.env.SUPABASE_URL + '/rest/v1/arv_lookups', {
+      method: 'POST',
+      headers: {
+        'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY,
+        'Authorization': 'Bearer ' + process.env.SUPABASE_SERVICE_ROLE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        address: row.address,
+        state: stateMatch ? stateMatch[1].toUpperCase() : null,
+        found: row.found,
+        source: row.source,
+        comps_count: row.comps_count || 0,
+        arv: row.arv
+      }),
+      signal: AbortSignal.timeout(2000)
+    });
+  } catch (e) {
+    console.error('logLookup failed:', e.message);
   }
 }
